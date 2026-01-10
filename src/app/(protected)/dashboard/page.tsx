@@ -107,7 +107,7 @@ export default async function DashboardPage() {
                         </Link>
 
                         <Link href="/calculator">
-                            <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 text-base px-8">
+                            <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 text-base px-8 dark:border-white/20 dark:hover:bg-accent dark:hover:text-accent-foreground">
                                 Go to Calculator
                             </Button>
                         </Link>
