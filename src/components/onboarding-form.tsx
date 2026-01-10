@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { SubmitButton } from "@/components/submit-button"
 import {
     Card,
     CardContent,
@@ -79,9 +80,9 @@ export function OnboardingForm() {
                         </Select>
                     </div>
 
-                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500">
+                    <SubmitButton type="submit" className="w-full bg-blue-600 hover:bg-blue-500" pendingText="Saving...">
                         Continue to Dashboard
-                    </Button>
+                    </SubmitButton>
                 </form>
             </CardContent>
         </Card>
