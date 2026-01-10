@@ -74,16 +74,18 @@ export function AddCourseDialog({ semesterId }: { semesterId: string }) {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="type" className="text-right">Type</Label>
-                        <Select name="type" defaultValue="Core">
+                        <Select name="type" defaultValue="Mandatory (Core)">
                             <SelectTrigger className="col-span-3 bg-zinc-800 border-zinc-700">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Core">Core</SelectItem>
-                                <SelectItem value="Elective">Elective</SelectItem>
-                                <SelectItem value="OC">Online Course (OC)</SelectItem>
-                                <SelectItem value="SG">Self Growth (SG)</SelectItem>
-                                <SelectItem value="CW">Community Work (CW)</SelectItem>
+                                <SelectItem value="Mandatory (Core)">Mandatory (Core)</SelectItem>
+                                <SelectItem value="Department Elective">Department Elective</SelectItem>
+                                <SelectItem value="Open Elective">Open Elective</SelectItem>
+                                <SelectItem value="Thesis">Thesis</SelectItem>
+                                <SelectItem value="IP/IS/UR">Independent Project (IP/IS/UR)</SelectItem>
+                                <SelectItem value="Outside Institute">Outside Institute</SelectItem>
+                                <SelectItem value="Repeated">Repeated</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
