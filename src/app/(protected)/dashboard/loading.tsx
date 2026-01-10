@@ -14,7 +14,7 @@ export default function DashboardLoading() {
             {/* Stats Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <Card key={i} className="bg-zinc-900 border-zinc-800">
+                    <Card key={i}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">
                                 <Skeleton className="h-4 w-[100px]" />
@@ -28,9 +28,8 @@ export default function DashboardLoading() {
                 ))}
             </div>
 
-            {/* Main Content Area */}
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-1 md:col-span-2 lg:col-span-4 bg-zinc-900 border-zinc-800">
+                <Card className="col-span-1 md:col-span-2 lg:col-span-4">
                     <CardHeader>
                         <Skeleton className="h-6 w-[150px]" />
                     </CardHeader>
@@ -38,7 +37,7 @@ export default function DashboardLoading() {
                         <Skeleton className="h-[350px] w-full" />
                     </CardContent>
                 </Card>
-                <Card className="col-span-1 md:col-span-2 lg:col-span-3 bg-zinc-900 border-zinc-800">
+                <Card className="col-span-1 md:col-span-2 lg:col-span-3">
                     <CardHeader>
                         <Skeleton className="h-6 w-[150px]" />
                         <Skeleton className="h-4 w-[250px]" />
