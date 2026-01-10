@@ -176,62 +176,60 @@ export async function uploadTranscript(formData: FormData) {
         let semestersAdded = 0;
         let coursesAdded = 0;
 
-        // Transactional update
-        await prisma.$transaction(async (tx: any) => {
-            const existingSemesters = await tx.semester.findMany({
-                where: { userId: session!.user!.id }
+        // direct update without transaction to avoid pooler timeouts
+        const existingSemesters = await prisma.semester.findMany({
+            where: { userId: session!.user!.id }
+        });
+
+        let nextSemNum = (existingSemesters.length > 0 ? Math.max(...existingSemesters.map((s: any) => s.semesterNum)) : 0) + 1;
+
+        for (const sem of parsedSemesters) {
+            // Try to map semester name to number if possible, else sequential
+            let thisSemNum = nextSemNum;
+            let type: "REGULAR" | "SUMMER" = "REGULAR";
+
+            if (isSummer || sem.semesterName.toLowerCase().includes("summer")) {
+                type = "SUMMER";
+            }
+
+            // Create Semester
+            const newSem = await prisma.semester.create({
+                data: {
+                    userId: session!.user!.id as string,
+                    semesterNum: thisSemNum,
+                    type: type
+                }
             });
 
-            let nextSemNum = (existingSemesters.length > 0 ? Math.max(...existingSemesters.map((s: any) => s.semesterNum)) : 0) + 1;
+            nextSemNum++; // Increment for next loop
+            semestersAdded++;
 
-            for (const sem of parsedSemesters) {
-                // Try to map semester name to number if possible, else sequential
-                let thisSemNum = nextSemNum;
-                let type: "REGULAR" | "SUMMER" = "REGULAR";
+            const createdCourses: any[] = [];
 
-                if (isSummer || sem.semesterName.toLowerCase().includes("summer")) {
-                    type = "SUMMER";
-                }
-
-                // Create Semester
-                const newSem = await tx.semester.create({
+            // Add Courses
+            for (const course of sem.courses) {
+                const newCourse = await prisma.course.create({
                     data: {
-                        userId: session!.user!.id as string,
-                        semesterNum: thisSemNum,
-                        type: type
+                        semesterId: newSem.id,
+                        name: course.name,
+                        credits: course.credits,
+                        grade: course.grade || "N/A",
+                        gradePoints: GRADE_POINTS[course.grade] ?? 0,
+                        code: course.code,
+                        type: course.type || "REGULAR"
                     }
                 });
-
-                nextSemNum++; // Increment for next loop
-                semestersAdded++;
-
-                const createdCourses: any[] = [];
-
-                // Add Courses
-                for (const course of sem.courses) {
-                    const newCourse = await tx.course.create({
-                        data: {
-                            semesterId: newSem.id,
-                            name: course.name,
-                            credits: course.credits,
-                            grade: course.grade || "N/A",
-                            gradePoints: GRADE_POINTS[course.grade] ?? 0,
-                            code: course.code,
-                            type: course.type || "REGULAR"
-                        }
-                    });
-                    coursesAdded++;
-                    createdCourses.push(newCourse);
-                }
-
-                // Calculate and Calculate SGPA for this semester
-                const sgpa = calculateSGPA(createdCourses);
-                await tx.semester.update({
-                    where: { id: newSem.id },
-                    data: { sgpa: sgpa }
-                });
+                coursesAdded++;
+                createdCourses.push(newCourse);
             }
-        });
+
+            // Calculate and Calculate SGPA for this semester
+            const sgpa = calculateSGPA(createdCourses);
+            await prisma.semester.update({
+                where: { id: newSem.id },
+                data: { sgpa: sgpa }
+            });
+        }
 
         revalidatePath("/semesters")
         revalidatePath("/dashboard")
