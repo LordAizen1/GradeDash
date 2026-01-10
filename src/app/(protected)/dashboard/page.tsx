@@ -86,19 +86,6 @@ export default async function DashboardPage() {
                     </p>
                 </div>
 
-                {!isEmpty && (
-                    <div className="flex items-center gap-6">
-                        <div className="text-right">
-                            <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Current CGPA</p>
-                            <div className={`text-4xl font-extrabold ${numericCgpa >= 8.5 ? 'text-secondary' :
-                                numericCgpa >= 7.0 ? 'text-accent' :
-                                    'text-destructive'
-                                }`}>
-                                <AnimatedCounter value={numericCgpa} />
-                            </div>
-                        </div>
-                    </div>
-                )}
             </header>
 
             {isEmpty ? (
