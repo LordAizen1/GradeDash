@@ -1,26 +1,167 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-outfit);
+  --font-mono: var(--font-outfit);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.5rem;
+  /* rounded-lg (8px) or rounded-md */
+  --background: #FFFFFF;
+  --foreground: #111827;
+  /* Gray 900 */
+  --card: #F3F4F6;
+  /* Gray 100 for card backgrounds (or white with border) - Design says "Solid background color" */
+  --card-foreground: #111827;
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
+  --primary: #3B82F6;
+  /* Blue 500 */
+  --primary-foreground: #FFFFFF;
+  --secondary: #10B981;
+  /* Emerald 500 */
+  --secondary-foreground: #FFFFFF;
+  --muted: #F3F4F6;
+  /* Gray 100 */
+  --muted-foreground: #6B7280;
+  /* Gray 500 */
+  --accent: #F59E0B;
+  /* Amber 500 */
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  /* Red 500 */
+  --destructive-foreground: #FFFFFF;
+  --border: #E5E7EB;
+  /* Gray 200 */
+  --input: #F3F4F6;
+  /* Gray 100 */
+  --ring: #3B82F6;
+  /* Blue 500 for focus rings */
+  /* Vibrant HSL values for charts (since component wraps in hsl()) */
+  --chart-1: 190 90% 50%;
+  /* Cyan */
+  --chart-2: 340 80% 60%;
+  /* Pink */
+  --chart-3: 280 85% 60%;
+  /* Purple */
+  --chart-4: 150 85% 55%;
+  /* Green */
+  --chart-5: 30 90% 60%;
+  /* Orange */
+
+  /* Sidebar - forcing light mode values for now as requested design is single palette light mode mainly, but we can support dark mappings if needed. Design doc "Single Palette: Light Mode". Assuming force light for now or map similarly. */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F3F4F6;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: #3B82F6;
+}
+
+.dark {
+  /* Design system spec was "Light Mode". Mapping dark mode to be high contrast if user system is dark, but trying to stick to the requested "Flat Design" principles. */
+  --background: #111827;
+  /* Gray 900 */
+  --foreground: #F9FAFB;
+  /* Gray 50 */
+  --card: #1F2937;
+  /* Gray 800 */
+  --card-foreground: #F9FAFB;
+  --popover: #111827;
+  --popover-foreground: #F9FAFB;
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #10B981;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1F2937;
+  --muted-foreground: #9CA3AF;
+  --accent: #F59E0B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #374151;
+  /* Gray 700 */
+  --input: #1F2937;
+  --ring: #3B82F6;
+  /* Vibrant HSL values for charts */
+  --chart-1: 190 90% 50%;
+  /* Cyan */
+  --chart-2: 340 80% 60%;
+  /* Pink */
+  --chart-3: 280 85% 60%;
+  /* Purple */
+  --chart-4: 150 85% 55%;
+  /* Green */
+  --chart-5: 30 90% 60%;
+  /* Orange */
+
+  --sidebar: #111827;
+  --sidebar-foreground: #F9FAFB;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1F2937;
+  --sidebar-accent-foreground: #F9FAFB;
+  --sidebar-border: #374151;
+  --sidebar-ring: #3B82F6;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    /* Main Background: White canvas */
+    @apply bg-background text-foreground;
+    font-family: var(--font-outfit);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+::view-transition-old(root), ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
 }

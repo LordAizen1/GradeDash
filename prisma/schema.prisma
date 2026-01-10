@@ -1,0 +1,91 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?   // Google Profile Pic
+  
+  // Academic Profile (Filled during onboarding)
+  batch         Int?      // e.g., 2024
+  branch        String?   // e.g., "CSE", "CSAM"
+  currentSem    Int?      // e.g., 5
+
+  accounts      Account[]
+  sessions      Session[]
+  semesters     Semester[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// NextAuth Standard Models for OAuth
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Semester {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  semesterNum Int      // Sequential ID (1, 2, 3...)
+  type        String   @default("REGULAR") // "REGULAR", "SUMMER"
+  courses     Course[]
+  sgpa        Float?   // Cached SGPA
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, semesterNum])
+}
+
+model Course {
+  id              String  @id @default(cuid())
+  semesterId      String
+  semester        Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  
+  name            String
+  code            String?
+  credits         Int     // Usually 1, 2, 4, or 8
+  grade           String  // A+, A, B, etc.
+  gradePoints     Float   // Mapped value (e.g., A=10)
+  
+  // Course Types: "Core", "Elective", "OC" (Online Course), "SG" (Self Growth), "CW" (Community Work)
+  type            String  @default("Core") 
+  
+  // Logic Flags
+  isCompleted     Boolean @default(true) // False for "Planned" courses
+  excludeFromCGPA Boolean @default(false) // True for S/X grades
+}
