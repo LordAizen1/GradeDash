@@ -30,10 +30,10 @@ export function OnboardingForm() {
             <CardContent>
                 <form action={completeOnboarding} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="batch">Batch Year</Label>
+                        <Label htmlFor="batch">Batch (Joining Year)</Label>
                         <Select name="batch" required>
                             <SelectTrigger className="bg-zinc-800 border-zinc-700">
-                                <SelectValue placeholder="Select Year" />
+                                <SelectValue placeholder="Select Joining Year" />
                             </SelectTrigger>
                             <SelectContent>
                                 {[2022, 2023, 2024, 2025, 2026].map((year) => (
