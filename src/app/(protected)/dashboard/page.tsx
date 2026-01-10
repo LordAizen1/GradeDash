@@ -90,8 +90,28 @@ export default async function DashboardPage() {
 
             {isEmpty ? (
                 // ... Empty State ...
-                <div className="flex flex-col items-center justify-center p-12 bg-muted rounded-lg text-center h-[50vh]">
-                    {/* ... */}
+                <div className="flex flex-col items-center justify-center p-12 bg-muted rounded-lg text-center min-h-[50vh] space-y-6">
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-bold">No academic data found</h2>
+                        <p className="text-muted-foreground max-w-md mx-auto">
+                            Get started by adding your semesters, or jump straight into the calculator if you just want to experiment.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Link href="/semesters">
+                            <Button size="lg" className="w-full sm:w-auto h-12 text-base px-8">
+                                <Plus className="mr-2 h-5 w-5" />
+                                Add Semesters
+                            </Button>
+                        </Link>
+
+                        <Link href="/calculator">
+                            <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 text-base px-8">
+                                Go to Calculator
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             ) : (
                 <>
