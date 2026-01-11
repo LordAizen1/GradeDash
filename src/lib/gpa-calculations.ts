@@ -15,6 +15,7 @@ export const GRADE_POINTS: Record<string, number> = {
     X: 0,
     W: 0,
     I: 0,
+    "N/A": 0, // Unreleased results - excluded from calculations
 };
 
 // SGPA Calculation
@@ -23,7 +24,8 @@ export function calculateSGPA(courses: Course[]): number {
     let totalCredits = 0;
 
     for (const course of courses) {
-        if (["S", "X", "W", "I"].includes(course.grade)) continue;
+        // Skip non-graded courses: S (Satisfactory), X (Exempted), W (Withdrawn), I (Incomplete), N/A (Unreleased)
+        if (["S", "X", "W", "I", "N/A"].includes(course.grade)) continue;
 
         let points = course.gradePoints;
         // Specific rule: F is 2 points for SGPA if the regulations say so, 
@@ -61,17 +63,17 @@ export function calculateCGPA(semesters: CalcSemester[], completedSemestersCount
 
     semesters.forEach(sem => {
         sem.courses.forEach(c => {
-            // Earned Credits Logic: Include everything except F, W, I, X
+            // Earned Credits Logic: Include everything except F, W, I, X, N/A
             // Assuming S counts as earned.
             // Check if grade indicates completion
-            const isEarned = !["F", "W", "I", "X"].includes(c.grade);
+            const isEarned = !["F", "W", "I", "X", "N/A"].includes(c.grade);
             if (isEarned) {
                 earnedCredits += c.credits;
             }
 
             // CGPA Credits Logic:
-            // Filter out S, X, W, I and those manually excluded
-            if (["S", "X", "W", "I"].includes(c.grade)) return;
+            // Filter out S, X, W, I, N/A (unreleased) and those manually excluded
+            if (["S", "X", "W", "I", "N/A"].includes(c.grade)) return;
             // Exclude F from CGPA denominator/calculation (Failed courses don't count until cleared)
             if (c.grade === "F") return;
             if (c.excludeFromCGPA) return;
