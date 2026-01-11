@@ -25,7 +25,13 @@ export function calculateSGPA(courses: Course[]): number {
 
     for (const course of courses) {
         // Skip non-graded courses: S (Satisfactory), X (Exempted), W (Withdrawn), I (Incomplete), N/A (Unreleased)
-        if (["S", "X", "W", "I", "N/A"].includes(course.grade)) continue;
+        const gradeUpper = course.grade?.trim().toUpperCase() || '';
+        const isExcluded = ["S", "X", "W", "I", "N/A", "WITHDRAWN"].includes(gradeUpper)
+            || gradeUpper.includes("WITHDRAW");
+
+        if (isExcluded) {
+            continue;
+        }
 
         let points = course.gradePoints;
         // Specific rule: F is 2 points for SGPA if the regulations say so, 
@@ -63,19 +69,24 @@ export function calculateCGPA(semesters: CalcSemester[], completedSemestersCount
 
     semesters.forEach(sem => {
         sem.courses.forEach(c => {
+            // Normalize grade for comparison (handle case, whitespace, and full words)
+            const gradeNorm = c.grade?.trim().toUpperCase() || '';
+            const isWithdrawnOrExcluded = ["S", "X", "W", "I", "N/A", "WITHDRAWN"].includes(gradeNorm)
+                || gradeNorm.includes("WITHDRAW");
+
             // Earned Credits Logic: Include everything except F, W, I, X, N/A
             // Assuming S counts as earned.
-            // Check if grade indicates completion
-            const isEarned = !["F", "W", "I", "X", "N/A"].includes(c.grade);
+            const isEarned = !["F", "W", "I", "X", "N/A", "WITHDRAWN"].includes(gradeNorm)
+                && !gradeNorm.includes("WITHDRAW");
             if (isEarned) {
                 earnedCredits += c.credits;
             }
 
             // CGPA Credits Logic:
-            // Filter out S, X, W, I, N/A (unreleased) and those manually excluded
-            if (["S", "X", "W", "I", "N/A"].includes(c.grade)) return;
+            // Filter out S, X, W, I, N/A (unreleased), Withdrawn and those manually excluded
+            if (isWithdrawnOrExcluded) return;
             // Exclude F from CGPA denominator/calculation (Failed courses don't count until cleared)
-            if (c.grade === "F") return;
+            if (gradeNorm === "F") return;
             if (c.excludeFromCGPA) return;
 
             cgpaCourses.push(c);
