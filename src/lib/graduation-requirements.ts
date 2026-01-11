@@ -232,10 +232,12 @@ export function isIndependentWork(course: CourseForRequirements): boolean {
 }
 
 /**
- * Check if a course is successfully completed (not F, W, I, X)
+ * Check if a course is successfully completed (not F, W, I, X, N/A)
  */
 export function isCompleted(course: CourseForRequirements): boolean {
-    return !['F', 'W', 'I', 'X'].includes(course.grade);
+    const gradeNorm = course.grade?.trim().toUpperCase() || '';
+    return !['F', 'W', 'I', 'X', 'N/A', 'WITHDRAW', 'WITHDRAWN'].includes(gradeNorm)
+        && !gradeNorm.includes('WITHDRAW');
 }
 
 // ============================================================
