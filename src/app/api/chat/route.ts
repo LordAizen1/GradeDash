@@ -1,9 +1,13 @@
 import { AssistantResponse } from 'ai';
 import { openai } from '@/lib/openai';
+import { auth } from '@/auth';
 
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+    const session = await auth();
+    if (!session) return new Response('Unauthorized', { status: 401 });
+
     // Parse the request body
     const input = await req.json();
 
