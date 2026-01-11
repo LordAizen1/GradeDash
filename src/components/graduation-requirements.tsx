@@ -14,9 +14,6 @@ interface Props {
 
 export function GraduationRequirementsDisplay({ progress, cgpa, requirements }: Props) {
     // Check if categories are completed
-    const isTotalComplete = progress.total.earned >= progress.total.required;
-    const isCSEComplete = progress.cseElectives.earned >= progress.cseElectives.required;
-    const isSSHComplete = progress.ssh.earned >= progress.ssh.required;
     const isOCComplete = progress.online.earned >= progress.online.max;
     const isIPComplete = progress.independentWork.earned >= progress.independentWork.max;
 
@@ -42,23 +39,63 @@ export function GraduationRequirementsDisplay({ progress, cgpa, requirements }: 
                     </CardContent>
                 </Card>
 
-                {/* CSE Electives - Blue */}
-                <Card className="border-none shadow-none bg-blue-600">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold text-blue-100 uppercase tracking-wider">
-                            CSE Electives (3xx+)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <div className="text-4xl font-bold text-white">
-                            {progress.cseElectives.earned} / {progress.cseElectives.required}
-                        </div>
-                        <Progress value={progress.cseElectives.percentage} className="h-2 bg-white/30 [&>div]:bg-white" />
-                        <p className="text-sm text-blue-100">
-                            Non-core, excludes BTP/IP
-                        </p>
-                    </CardContent>
-                </Card>
+                {/* Branch Specific Electives Card */}
+                {progress.disciplineElectives ? (
+                    <Card className="border-none shadow-none bg-blue-600">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-semibold text-blue-100 uppercase tracking-wider">
+                                Discipline Electives
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="text-4xl font-bold text-white">
+                                {progress.disciplineElectives.earned} / {progress.disciplineElectives.required}
+                            </div>
+                            <Progress value={progress.disciplineElectives.percentage} className="h-2 bg-white/30 [&>div]:bg-white" />
+                            {progress.disciplineElectives.details && (
+                                <div className="text-xs text-blue-100 flex gap-3 font-medium">
+                                    <span>CSE: {progress.disciplineElectives.details.cseEarned}</span>
+                                    {progress.disciplineElectives.details.mathEarned !== undefined && <span>Math: {progress.disciplineElectives.details.mathEarned}</span>}
+                                    {progress.disciplineElectives.details.bioEarned !== undefined && <span>Bio: {progress.disciplineElectives.details.bioEarned}</span>}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                ) : progress.eceElectives ? (
+                    <Card className="border-none shadow-none bg-blue-600">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-semibold text-blue-100 uppercase tracking-wider">
+                                ECE Electives (3xx+)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="text-4xl font-bold text-white">
+                                {progress.eceElectives.earned} / {progress.eceElectives.required}
+                            </div>
+                            <Progress value={progress.eceElectives.percentage} className="h-2 bg-white/30 [&>div]:bg-white" />
+                            <p className="text-sm text-blue-100">
+                                Non-core, excludes BTP/IP
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : progress.cseElectives ? (
+                    <Card className="border-none shadow-none bg-blue-600">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-semibold text-blue-100 uppercase tracking-wider">
+                                CSE Electives (3xx+)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="text-4xl font-bold text-white">
+                                {progress.cseElectives.earned} / {progress.cseElectives.required}
+                            </div>
+                            <Progress value={progress.cseElectives.percentage} className="h-2 bg-white/30 [&>div]:bg-white" />
+                            <p className="text-sm text-blue-100">
+                                Non-core, excludes BTP/IP
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : null}
 
                 {/* SSH Credits - Orange */}
                 <Card className="border-none shadow-none bg-orange-500">
