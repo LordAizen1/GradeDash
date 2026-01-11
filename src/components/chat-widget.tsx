@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 
@@ -62,7 +63,19 @@ export function ChatWidget() {
                                             : "bg-muted text-foreground rounded-bl-none"
                                     )}>
                                         {/* Simple formatting for now */}
-                                        <div className="whitespace-pre-wrap leading-relaxed">{m.content.replace(/【.*?】/g, '')}</div>
+                                        <div className="text-sm leading-relaxed">
+                                            <ReactMarkdown
+                                                components={{
+                                                    ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2" {...props} />,
+                                                    ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2" {...props} />,
+                                                    li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+                                                    p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                                                    strong: ({ node, ...props }) => <span className="font-semibold text-foreground/90" {...props} />
+                                                }}
+                                            >
+                                                {m.content.replace(/【.*?】/g, '')}
+                                            </ReactMarkdown>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
