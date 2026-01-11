@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import NextTopLoader from "nextjs-toploader";
+import { ChatWidget } from "@/components/chat-widget";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -32,6 +33,7 @@ export default function RootLayout({
         >
           <NextTopLoader color="#2563eb" showSpinner={false} />
           {children}
+          <ChatWidget />
         </ThemeProvider>
       </body>
     </html>
