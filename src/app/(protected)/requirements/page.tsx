@@ -44,11 +44,6 @@ export default async function RequirementsPage() {
                 </p>
             </header>
 
-            {/* Debug: Render timestamp to verify no caching */}
-            <p className="text-xs text-muted-foreground/50">
-                Last calculated: {new Date().toISOString()} | OC: {progress.online.earned} | BTP: {progress.btp.earned}
-            </p>
-
             <GraduationRequirementsDisplay
                 progress={progress}
                 cgpa={cgpa}
