@@ -36,6 +36,33 @@ export const CSE_REQUIREMENTS = {
 };
 
 // ============================================================
+// CSSS B.Tech Requirements (2019+ Batch)
+// ============================================================
+export const CSSS_REQUIREMENTS = {
+    totalCredits: 156,
+    cseElectiveCredits: 16,      // Reduced from 32 for CSSS
+    sshCredits: 28,              // Increased from 12 (Discipline Electives)
+    sgCredits: 2,
+    cwCredits: 2,
+    maxOnlineCredits: 8,
+    maxIndependentCredits: 8,
+    btp: {
+        min: 8,
+        max: 12,
+        maxPerSemester: 8
+    },
+    honors: {
+        totalCredits: 168,
+        minCgpa: 8.0,
+        requiresBtp: true
+    }
+};
+
+export function getRequirementsConstants(branch: string = 'CSE') {
+    return branch === 'CSSS' ? CSSS_REQUIREMENTS : CSE_REQUIREMENTS;
+}
+
+// ============================================================
 // Helper Functions
 // ============================================================
 
@@ -288,7 +315,7 @@ export function calculateRequirementsProgress(
     cgpa: number,
     branch: string = 'CSE'
 ): RequirementsProgress {
-    const reqs = CSE_REQUIREMENTS;
+    const reqs = getRequirementsConstants(branch);
     const completed = courses.filter(isCompleted);
 
     // --- STEP 1: Handle Capped Categories First ---
