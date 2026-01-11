@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { calculateCGPA } from "@/lib/gpa-calculations"
-import { calculateRequirementsProgress, getRequirementsConstants } from "@/lib/graduation-requirements"
+import { calculateRequirementsProgress } from "@/lib/graduation-requirements"
 import { GraduationRequirementsDisplay } from "@/components/graduation-requirements"
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,7 @@ export default async function RequirementsPage() {
     // Calculate progress
     const branch = user.branch || 'CSE';
     const progress = calculateRequirementsProgress(allCourses, cgpa, branch)
-    const requirements = getRequirementsConstants(branch);
+
 
     return (
         <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto space-y-8">
@@ -49,7 +49,6 @@ export default async function RequirementsPage() {
             <GraduationRequirementsDisplay
                 progress={progress}
                 cgpa={cgpa}
-                requirements={requirements}
             />
         </div>
     )

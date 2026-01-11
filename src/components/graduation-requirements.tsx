@@ -4,15 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { CheckCircle2, XCircle, AlertCircle, GraduationCap, Award } from "lucide-react"
-import type { RequirementsProgress, CSE_REQUIREMENTS } from "@/lib/graduation-requirements"
+import type { RequirementsProgress } from "@/lib/graduation-requirements"
 
 interface Props {
     progress: RequirementsProgress
     cgpa: number
-    requirements: typeof CSE_REQUIREMENTS
 }
 
-export function GraduationRequirementsDisplay({ progress, cgpa, requirements }: Props) {
+export function GraduationRequirementsDisplay({ progress, cgpa }: Props) {
     // Check if categories are completed
     const isOCComplete = progress.online.earned >= progress.online.max;
     const isIPComplete = progress.independentWork.earned >= progress.independentWork.max;
