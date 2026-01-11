@@ -195,7 +195,16 @@ export function isCWCourse(course: CourseForRequirements): boolean {
  */
 export function isOnlineCourse(course: CourseForRequirements): boolean {
     const t = course.type?.toLowerCase() || '';
+    const name = course.name?.toLowerCase() || '';
+    const code = getCourseCode(course);
+
+    // Strict checks by code
+    if (code?.startsWith('CSE999') || code?.startsWith('CSE998')) return true;
+
+    // Fallback names/types
     if (t === 'oc' || t === 'online course' || t.includes('online')) return true;
+    if (name.includes('distance course') || name.includes('online')) return true;
+
     return false;
 }
 
@@ -203,11 +212,22 @@ export function isOnlineCourse(course: CourseForRequirements): boolean {
  * Check if a course is BTP/Thesis
  */
 export function isBTPCourse(course: CourseForRequirements): boolean {
-    const t = course.type?.toLowerCase() || '';
-    if (t === 'thesis' || t === 'btp' || t.includes('thesis') || t.includes('b.tech project')) return true;
-
     const code = getCourseCode(course);
-    return code?.startsWith('BTP') || false;
+
+    // Primary check: Code starting with BTP
+    if (code?.startsWith('BTP')) return true;
+
+    // Fallback: Check for thesis/project type but exclude Community Work (MSC491)
+    const t = course.type?.toLowerCase() || '';
+    const name = course.name?.toLowerCase() || '';
+
+    if (code?.startsWith('MSC') || name.includes('community work')) return false;
+    if (course.credits < 3) return false;
+
+    if (t === 'thesis' || t === 'btp' || t.includes('b.tech project')) return true;
+    if (name.includes('b.tech project') || name.includes('thesis')) return true;
+
+    return false;
 }
 
 /**
@@ -298,6 +318,7 @@ export function calculateRequirementsProgress(
         const code = getCourseCode(course);
         const isOC = isOnlineCourse(course);
         const isIP = isIndependentWork(course);
+        const isBTP = isBTPCourse(course);
 
         // Online courses can still count toward CSE elective bucket
         if (isOC && isCSEElective(course)) {
