@@ -4,7 +4,9 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { GRADE_POINTS, calculateSGPA } from "@/lib/gpa-calculations"
+
 import OpenAI from "openai";
+import { checkRateLimit } from "@/lib/limits";
 
 export async function uploadTranscript(formData: FormData) {
     const session = await auth()
@@ -15,6 +17,12 @@ export async function uploadTranscript(formData: FormData) {
     // Check for API Key
     if (!process.env.OPENAI_API_KEY) {
         return { success: false, error: "OpenAI API Key is missing. Please add OPENAI_API_KEY to .env.local" };
+    }
+
+    // Rate Limit Check
+    const limit = await checkRateLimit(session.user.id, 'upload');
+    if (!limit.success) {
+        return { success: false, error: "Daily upload limit exceeded (5/day). Please try again tomorrow." };
     }
 
     try {
@@ -30,6 +38,12 @@ export async function uploadTranscript(formData: FormData) {
         }
 
         console.log(`Processing file: ${file.name}, type: ${file.type}`);
+
+        // Check File Size (5MB limit)
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_SIZE) {
+            return { success: false, error: "File too large. Maximum size is 5MB." };
+        }
 
         // Read the file as buffer
         const buffer = Buffer.from(await file.arrayBuffer());

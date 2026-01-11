@@ -21,6 +21,11 @@ model User {
   branch        String?   // e.g., "CSE", "CSAM"
   currentSem    Int?      // e.g., 5
 
+  // Rate Limiting
+  dailyMessageCount Int       @default(0)
+  dailyUploadCount  Int       @default(0)
+  lastResetDate     DateTime  @default(now())
+
   accounts      Account[]
   sessions      Session[]
   semesters     Semester[]

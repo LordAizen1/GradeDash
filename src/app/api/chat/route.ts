@@ -1,12 +1,19 @@
 import { AssistantResponse } from 'ai';
 import { openai } from '@/lib/openai';
 import { auth } from '@/auth';
+import { checkRateLimit } from '@/lib/limits';
 
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
     const session = await auth();
-    if (!session) return new Response('Unauthorized', { status: 401 });
+    if (!session?.user?.id) return new Response('Unauthorized', { status: 401 });
+
+    // Rate Limit Check
+    const limit = await checkRateLimit(session.user.id, 'chat');
+    if (!limit.success) {
+        return new Response("Daily message limit exceeded (30/day). Please try again tomorrow.", { status: 429 });
+    }
 
     // Parse the request body
     const input = await req.json();
