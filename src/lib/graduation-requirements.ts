@@ -16,6 +16,9 @@ const CSE_PREFIXES = ['CSE'];
 const MTH_PREFIXES = ['MTH', 'MATH'];
 const ECE_PREFIXES = ['ECE', 'ELD', 'DES'];
 const BIO_PREFIXES = ['BIO'];
+const DES_PREFIXES = ['DES', 'HCI']; // CSD
+const CSAI_PREFIXES = ['CSE', 'CSB', 'CSD', 'CSZ', 'AI']; // CSAI
+const EVE_PREFIXES = ['EVE']; // EVE (Reg 3.6), cross-listed ECE/CSE may apply if coded as EVE
 
 // ============================================================
 // CSE B.Tech Requirements
@@ -113,12 +116,62 @@ export const CSB_REQUIREMENTS = {
     honors: { totalCredits: 168, minCgpa: 8.0, requiresBtp: true }
 };
 
+// ============================================================
+// CSD B.Tech Requirements
+// ============================================================
+export const CSD_REQUIREMENTS = {
+    totalCredits: 156,
+    disciplineTotal: 32,
+    minCseCredits: 12,
+    minDesCredits: 12,
+    sshCredits: 12,
+    sgCredits: 2,
+    cwCredits: 2,
+    maxOnlineCredits: 8,
+    maxIndependentCredits: 8,
+    btp: { min: 8, max: 12, maxPerSemester: 8 },
+    honors: { totalCredits: 168, minCgpa: 8.0, requiresBtp: true }
+};
+
+// ============================================================
+// CSAI B.Tech Requirements
+// ============================================================
+export const CSAI_REQUIREMENTS = {
+    totalCredits: 156,
+    csaiElectiveCredits: 32,
+    sshCredits: 12,
+    sgCredits: 2,
+    cwCredits: 2,
+    maxOnlineCredits: 8,
+    maxIndependentCredits: 8,
+    btp: { min: 8, max: 12, maxPerSemester: 8 },
+    honors: { totalCredits: 168, minCgpa: 8.0, requiresBtp: true }
+};
+
+// ============================================================
+// EVE B.Tech Requirements
+// ============================================================
+export const EVE_REQUIREMENTS = {
+    totalCredits: 156,
+    eveElectiveCredits: 16,
+    sshCredits: 12,
+    sgCredits: 2,
+    cwCredits: 2,
+    maxOnlineCredits: 8,
+    maxIndependentCredits: 8,
+    btp: { min: 8, max: 12, maxPerSemester: 8 },
+    honors: { totalCredits: 168, minCgpa: 8.0, requiresBtp: true }
+};
+
 export function getRequirementsConstants(branch: string = 'CSE') {
     switch (branch) {
         case 'CSSS': return CSSS_REQUIREMENTS;
         case 'CSAM': return CSAM_REQUIREMENTS;
         case 'ECE': return ECE_REQUIREMENTS;
         case 'CSB': return CSB_REQUIREMENTS;
+        case 'CSD': return CSD_REQUIREMENTS;
+        case 'CSAI': return CSAI_REQUIREMENTS;
+        case 'EVE': return EVE_REQUIREMENTS;
         default: return CSE_REQUIREMENTS;
     }
 }
@@ -396,6 +449,62 @@ export function isBioElective(course: CourseForRequirements): boolean {
 }
 
 /**
+ * Check if a course is a Design elective (3xx+, non-core)
+ */
+export function isDesElective(course: CourseForRequirements): boolean {
+    if (!course.code) return false;
+
+    // Check prefix
+    const prefix = getCoursePrefix(course.code);
+    if (!DES_PREFIXES.includes(prefix)) return false;
+
+    // Check Level (3xx+)
+    const level = getCourseLevel(course.code);
+    if (level < 300) return false;
+
+    if (isCoreCourse(course)) return false;
+    if (isIndependentWork(course)) return false;
+
+    return true;
+}
+
+/**
+ * Check if a course is a CSAI elective (3xx+, non-core)
+ */
+export function isCSAIElective(course: CourseForRequirements): boolean {
+    if (!course.code) return false;
+
+    const prefix = getCoursePrefix(course.code);
+    if (!CSAI_PREFIXES.includes(prefix)) return false;
+
+    const level = getCourseLevel(course.code);
+    if (level < 300) return false;
+
+    if (isCoreCourse(course)) return false;
+    if (isIndependentWork(course)) return false;
+
+    return true;
+}
+
+/**
+ * Check if a course is an EVE elective (3xx+, non-core)
+ */
+export function isEVEElective(course: CourseForRequirements): boolean {
+    if (!course.code) return false;
+
+    const prefix = getCoursePrefix(course.code);
+    if (!EVE_PREFIXES.includes(prefix)) return false;
+
+    const level = getCourseLevel(course.code);
+    if (level < 300) return false;
+
+    if (isCoreCourse(course)) return false;
+    if (isIndependentWork(course)) return false;
+
+    return true;
+}
+
+/**
  * Check if a course is successfully completed (not F, W, I, X, N/A)
  */
 export function isCompleted(course: CourseForRequirements): boolean {
@@ -412,6 +521,7 @@ export interface RequirementsProgress {
     total: { earned: number; required: number; percentage: number };
     cseElectives?: { earned: number; required: number; percentage: number; courses: string[] };
     eceElectives?: { earned: number; required: number; percentage: number; courses: string[] };
+    eveElectives?: { earned: number; required: number; percentage: number; courses: string[] };
     disciplineElectives?: {
         earned: number;
         required: number;
@@ -423,6 +533,8 @@ export interface RequirementsProgress {
             minMath?: number;
             bioEarned?: number;
             minBio?: number;
+            desEarned?: number;
+            minDes?: number;
         };
         courses: string[];
     };
@@ -759,6 +871,195 @@ export function calculateCSBProgress(
     };
 }
 
+export function calculateCSDProgress(
+    courses: CourseForRequirements[],
+    cgpa: number
+): RequirementsProgress {
+    const reqs = CSD_REQUIREMENTS;
+    const completed = courses.filter(isCompleted);
+
+    // --- STEP 1: Handle Capped Categories ---
+    let rawOnline = 0;
+    let rawIndependent = 0;
+
+    for (const course of completed) {
+        if (isOnlineCourse(course)) rawOnline += course.credits;
+        if (isIndependentWork(course)) rawIndependent += course.credits;
+    }
+
+    const validOnline = Math.min(rawOnline, reqs.maxOnlineCredits);
+    const validIndependent = Math.min(rawIndependent, reqs.maxIndependentCredits);
+
+    // --- STEP 2: Main Accumulation ---
+    let baseTotal = 0;
+    let cseElectiveCredits = 0;
+    let desElectiveCredits = 0;
+    let disciplineTotalCredits = 0;
+
+    let sshCredits = 0;
+    let sgCredits = 0;
+    let cwCredits = 0;
+    let btpCredits = 0;
+
+    const disciplineCourses: string[] = [];
+    const sshCourses: string[] = [];
+
+    for (const course of completed) {
+        if (isOnlineCourse(course) || isIndependentWork(course)) continue;
+
+        baseTotal += course.credits;
+
+        // 1. Discipline Electives (CSE + DES)
+        const isCse = isCSEElective(course);
+        const isDes = isDesElective(course);
+
+        if (isCse) {
+            cseElectiveCredits += course.credits;
+            disciplineTotalCredits += course.credits;
+            disciplineCourses.push(getCourseCode(course) || course.type);
+        } else if (isDes) {
+            desElectiveCredits += course.credits;
+            disciplineTotalCredits += course.credits;
+            disciplineCourses.push(getCourseCode(course) || course.type);
+        }
+
+        // 2. SSH Credits
+        if (isSSHCourse(course)) {
+            sshCredits += course.credits;
+            sshCourses.push(getCourseCode(course) || course.type);
+        }
+
+        if (isSGCourse(course)) sgCredits += course.credits;
+        if (isCWCourse(course)) cwCredits += course.credits;
+        if (isBTPCourse(course)) btpCredits += course.credits;
+    }
+
+    const finalTotalCredits = baseTotal + validOnline + validIndependent;
+    const hasEnoughCredits = finalTotalCredits >= reqs.honors.totalCredits;
+    const hasBTP = btpCredits > 0;
+    const hasCgpa = cgpa >= reqs.honors.minCgpa;
+
+    return {
+        total: {
+            earned: finalTotalCredits,
+            required: reqs.totalCredits,
+            percentage: Math.min(100, Math.round((finalTotalCredits / reqs.totalCredits) * 100))
+        },
+        disciplineElectives: {
+            earned: disciplineTotalCredits,
+            required: reqs.disciplineTotal,
+            percentage: Math.min(100, Math.round((disciplineTotalCredits / reqs.disciplineTotal) * 100)),
+            details: {
+                cseEarned: cseElectiveCredits,
+                minCse: reqs.minCseCredits,
+                desEarned: desElectiveCredits,
+                minDes: reqs.minDesCredits
+            },
+            courses: disciplineCourses
+        },
+        ssh: {
+            earned: sshCredits,
+            required: reqs.sshCredits,
+            percentage: Math.min(100, Math.round((sshCredits / reqs.sshCredits) * 100)),
+            courses: sshCourses
+        },
+        sg: { earned: sgCredits, required: reqs.sgCredits, completed: sgCredits >= reqs.sgCredits },
+        cw: { earned: cwCredits, required: reqs.cwCredits, completed: cwCredits >= reqs.cwCredits },
+        online: { earned: rawOnline, max: reqs.maxOnlineCredits, withinLimit: rawOnline <= reqs.maxOnlineCredits },
+        independentWork: { earned: rawIndependent, max: reqs.maxIndependentCredits, withinLimit: rawIndependent <= reqs.maxIndependentCredits },
+        btp: { earned: btpCredits, hasBTP },
+        honors: {
+            eligible: hasEnoughCredits && hasBTP && hasCgpa,
+            hasEnoughCredits, hasBTP, hasCgpa,
+            currentCredits: finalTotalCredits, requiredCredits: reqs.honors.totalCredits
+        }
+    };
+}
+
+export function calculateCSAIProgress(
+    courses: CourseForRequirements[],
+    cgpa: number
+): RequirementsProgress {
+    const reqs = CSAI_REQUIREMENTS;
+    const completed = courses.filter(isCompleted);
+
+    let rawOnline = 0;
+    let rawIndependent = 0;
+
+    for (const course of completed) {
+        if (isOnlineCourse(course)) rawOnline += course.credits;
+        if (isIndependentWork(course)) rawIndependent += course.credits;
+    }
+
+    const validOnline = Math.min(rawOnline, reqs.maxOnlineCredits);
+    const validIndependent = Math.min(rawIndependent, reqs.maxIndependentCredits);
+
+    let baseTotal = 0;
+    let csaiElectiveCredits = 0;
+    let sshCredits = 0;
+    let sgCredits = 0;
+    let cwCredits = 0;
+    let btpCredits = 0;
+
+    const csaiElectiveCourses: string[] = [];
+    const sshCourses: string[] = [];
+
+    for (const course of completed) {
+        if (isOnlineCourse(course) || isIndependentWork(course)) continue;
+
+        baseTotal += course.credits;
+
+        if (isCSAIElective(course)) {
+            csaiElectiveCredits += course.credits;
+            csaiElectiveCourses.push(getCourseCode(course) || course.type);
+        }
+
+        if (isSSHCourse(course)) {
+            sshCredits += course.credits;
+            sshCourses.push(getCourseCode(course) || course.type);
+        }
+
+        if (isSGCourse(course)) sgCredits += course.credits;
+        if (isCWCourse(course)) cwCredits += course.credits;
+        if (isBTPCourse(course)) btpCredits += course.credits;
+    }
+
+    const finalTotalCredits = baseTotal + validOnline + validIndependent;
+    const hasEnoughCredits = finalTotalCredits >= reqs.honors.totalCredits;
+    const hasBTP = btpCredits > 0;
+    const hasCgpa = cgpa >= reqs.honors.minCgpa;
+
+    return {
+        total: {
+            earned: finalTotalCredits,
+            required: reqs.totalCredits,
+            percentage: Math.min(100, Math.round((finalTotalCredits / reqs.totalCredits) * 100))
+        },
+        cseElectives: {
+            earned: csaiElectiveCredits,
+            required: reqs.csaiElectiveCredits,
+            percentage: Math.min(100, Math.round((csaiElectiveCredits / reqs.csaiElectiveCredits) * 100)),
+            courses: csaiElectiveCourses
+        },
+        ssh: {
+            earned: sshCredits,
+            required: reqs.sshCredits,
+            percentage: Math.min(100, Math.round((sshCredits / reqs.sshCredits) * 100)),
+            courses: sshCourses
+        },
+        sg: { earned: sgCredits, required: reqs.sgCredits, completed: sgCredits >= reqs.sgCredits },
+        cw: { earned: cwCredits, required: reqs.cwCredits, completed: cwCredits >= reqs.cwCredits },
+        online: { earned: rawOnline, max: reqs.maxOnlineCredits, withinLimit: rawOnline <= reqs.maxOnlineCredits },
+        independentWork: { earned: rawIndependent, max: reqs.maxIndependentCredits, withinLimit: rawIndependent <= reqs.maxIndependentCredits },
+        btp: { earned: btpCredits, hasBTP },
+        honors: {
+            eligible: hasEnoughCredits && hasBTP && hasCgpa,
+            hasEnoughCredits, hasBTP, hasCgpa,
+            currentCredits: finalTotalCredits, requiredCredits: reqs.honors.totalCredits
+        }
+    };
+}
+
 function calculateGenericProgress(
     courses: CourseForRequirements[],
     cgpa: number,
@@ -884,15 +1185,106 @@ function calculateGenericProgress(
     };
 }
 
+/**
+ * Logic for EVE
+ */
+export function calculateEVEProgress(
+    courses: CourseForRequirements[],
+    cgpa: number
+): RequirementsProgress {
+    const reqs = EVE_REQUIREMENTS;
+    const completed = courses.filter(isCompleted);
+
+    let rawOnline = 0;
+    let rawIndependent = 0;
+
+    for (const course of completed) {
+        if (isOnlineCourse(course)) rawOnline += course.credits;
+        if (isIndependentWork(course)) rawIndependent += course.credits;
+    }
+
+    const validOnline = Math.min(rawOnline, reqs.maxOnlineCredits);
+    const validIndependent = Math.min(rawIndependent, reqs.maxIndependentCredits);
+
+    let baseTotal = 0;
+    let eveElectiveCredits = 0;
+    let sshCredits = 0;
+    let sgCredits = 0;
+    let cwCredits = 0;
+    let btpCredits = 0;
+
+    const eveElectiveCourses: string[] = [];
+    const sshCourses: string[] = [];
+
+    for (const course of completed) {
+        if (isOnlineCourse(course) || isIndependentWork(course)) continue;
+
+        baseTotal += course.credits;
+
+        if (isEVEElective(course)) {
+            eveElectiveCredits += course.credits;
+            eveElectiveCourses.push(getCourseCode(course) || course.type);
+        }
+
+        if (isSSHCourse(course)) {
+            sshCredits += course.credits;
+            sshCourses.push(getCourseCode(course) || course.type);
+        }
+
+        if (isSGCourse(course)) sgCredits += course.credits;
+        if (isCWCourse(course)) cwCredits += course.credits;
+        if (isBTPCourse(course)) btpCredits += course.credits;
+    }
+
+    const finalTotalCredits = baseTotal + validOnline + validIndependent;
+    const hasEnoughCredits = finalTotalCredits >= reqs.honors.totalCredits;
+    const hasBTP = btpCredits > 0;
+    const hasCgpa = cgpa >= reqs.honors.minCgpa;
+
+    return {
+        total: {
+            earned: finalTotalCredits,
+            required: reqs.totalCredits,
+            percentage: Math.min(100, Math.round((finalTotalCredits / reqs.totalCredits) * 100))
+        },
+        eveElectives: {
+            earned: eveElectiveCredits,
+            required: reqs.eveElectiveCredits,
+            percentage: Math.min(100, Math.round((eveElectiveCredits / reqs.eveElectiveCredits) * 100)),
+            courses: eveElectiveCourses
+        },
+        ssh: {
+            earned: sshCredits,
+            required: reqs.sshCredits,
+            percentage: Math.min(100, Math.round((sshCredits / reqs.sshCredits) * 100)),
+            courses: sshCourses
+        },
+        sg: { earned: sgCredits, required: reqs.sgCredits, completed: sgCredits >= reqs.sgCredits },
+        cw: { earned: cwCredits, required: reqs.cwCredits, completed: cwCredits >= reqs.cwCredits },
+        online: { earned: rawOnline, max: reqs.maxOnlineCredits, withinLimit: rawOnline <= reqs.maxOnlineCredits },
+        independentWork: { earned: rawIndependent, max: reqs.maxIndependentCredits, withinLimit: rawIndependent <= reqs.maxIndependentCredits },
+        btp: { earned: btpCredits, hasBTP },
+        honors: {
+            eligible: hasEnoughCredits && hasBTP && hasCgpa,
+            hasEnoughCredits, hasBTP, hasCgpa,
+            currentCredits: finalTotalCredits, requiredCredits: reqs.honors.totalCredits
+        }
+    };
+}
+
 export function calculateRequirementsProgress(
     courses: CourseForRequirements[],
     cgpa: number,
     branch: string = 'CSE'
 ): RequirementsProgress {
     switch (branch) {
+        case 'CSSS': return calculateGenericProgress(courses, cgpa, branch); // Actually uses generic but constants are different
         case 'CSAM': return calculateCSAMProgress(courses, cgpa);
         case 'ECE': return calculateECEProgress(courses, cgpa);
         case 'CSB': return calculateCSBProgress(courses, cgpa);
+        case 'CSD': return calculateCSDProgress(courses, cgpa);
+        case 'CSAI': return calculateCSAIProgress(courses, cgpa);
+        case 'EVE': return calculateEVEProgress(courses, cgpa);
         default: return calculateGenericProgress(courses, cgpa, branch);
     }
 }

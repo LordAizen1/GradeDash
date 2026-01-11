@@ -9,7 +9,7 @@
 -   **📊 Interactive Dashboard**: Visualise SGPA/CGPA trends with responsive Recharts.
 -   **🤖 AI Transcript Import**: Upload a PDF transcript, and our GPT-4o parser extracts courses and grades instantly.
 -   **💬 GradeDash Guide (Chatbot)**: A RAG-powered assistant (OpenAI Assistants API) that answers queries about B.Tech regulations, drop deadlines, and branch specifics using official documents.
--   **🎓 Multi-Branch Support**: Tailored graduation requirements for **CSE, CSSS, CSAM, ECE, and CSB**.
+-   **🛡️ Secure & Quota Protected**: Built-in rate limiting (30 chats/day, 5 uploads/day) to prevent API abuse.
 -   **🧮 Smart Calculators**:
     -   **Requirements Tracker**: Tracks credits against branch-specific buckets (Core, Electives, SSH, etc.).
     -   **Target Calculator**: "What SGPA do I need for an 8.5 CGPA?"
