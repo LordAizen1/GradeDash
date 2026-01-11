@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, GraduationCap, Calculator, LogOut, ChevronUp, Sparkles } from "lucide-react"
+import { LayoutDashboard, GraduationCap, Calculator, LogOut, ChevronUp, Sparkles, ClipboardCheck } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -44,6 +44,11 @@ const items = [
         title: "Calculator",
         url: "/calculator",
         icon: Calculator,
+    },
+    {
+        title: "Requirements",
+        url: "/requirements",
+        icon: ClipboardCheck,
     },
 ]
 
