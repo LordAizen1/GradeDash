@@ -10,7 +10,7 @@
 const SSH_PREFIXES = ['SSH', 'SOC', 'ECO', 'PSY', 'PHI', 'ENT', 'COM'];
 
 // CSE Course Code Prefixes (for 32-credit elective requirement)
-const CSE_PREFIXES = ['CSE', 'CSB', 'CSD', 'CSZ']; // CSB=Bioinfo, CSD=Design, CSZ=Special Topics
+const CSE_PREFIXES = ['CSE'];
 
 // ============================================================
 // CSE B.Tech Requirements
