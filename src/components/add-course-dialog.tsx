@@ -80,15 +80,8 @@ export function AddCourseDialog({ semesterId }: { semesterId: string }) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Mandatory (Core)">Mandatory (Core)</SelectItem>
-                                <SelectItem value="Department Elective">Department Elective</SelectItem>
-                                <SelectItem value="Open Elective">Open Elective</SelectItem>
-                                <SelectItem value="SSH">SSH (Social Sciences & Humanities)</SelectItem>
-                                <SelectItem value="Thesis">Thesis / BTP</SelectItem>
-                                <SelectItem value="IP/IS/UR">Independent Project (IP/IS/UR)</SelectItem>
-                                <SelectItem value="Online Course">Online Course (OC)</SelectItem>
-                                <SelectItem value="Self Growth">Self Growth (SG)</SelectItem>
-                                <SelectItem value="Community Work">Community Work (CW)</SelectItem>
-                                <SelectItem value="Outside Institute">Outside Institute</SelectItem>
+                                <SelectItem value="Elective">Elective</SelectItem>
+                                <SelectItem value="SSH">SSH</SelectItem>
                                 <SelectItem value="Repeated">Repeated</SelectItem>
                             </SelectContent>
                         </Select>
