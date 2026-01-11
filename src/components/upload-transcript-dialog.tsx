@@ -13,96 +13,53 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { CloudUpload } from "lucide-react"
+import { CloudUpload, FileText } from "lucide-react"
 import { uploadTranscript } from "@/app/actions/transcript-actions"
 
 export function UploadTranscriptDialog() {
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState<string | null>(null)
-    const [conversionStatus, setConversionStatus] = useState<string | null>(null)
+    const [status, setStatus] = useState<string | null>(null)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
         setIsLoading(true)
         setMessage(null)
-        setConversionStatus(null)
 
         const formData = new FormData(event.currentTarget)
-        const file = formData.get('file') as File
 
-        // Handle PDF conversion client-side
-        if (file && file.type === 'application/pdf') {
-            try {
-                setConversionStatus("Converting PDF to images for better accuracy...")
-
-                // Dynamically import pdfjs
-                const pdfjs = await import('pdfjs-dist');
-                // Set worker using CDN to avoid build issues
-                pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-
-                const imageBlobs: Blob[] = [];
-
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    setConversionStatus(`Processing page ${i} of ${pdf.numPages}...`);
-                    const page = await pdf.getPage(i);
-                    const viewport = page.getViewport({ scale: 2.0 }); // High quality scale
-
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    if (context) {
-                        await page.render({ canvasContext: context, viewport: viewport } as any).promise;
-
-                        const blob = await new Promise<Blob | null>(resolve =>
-                            canvas.toBlob(resolve, 'image/jpeg', 0.95)
-                        );
-
-                        if (blob) imageBlobs.push(blob);
-                    }
-                }
-
-                if (imageBlobs.length > 0) {
-                    // Replace the PDF with all generated images
-                    formData.delete('file');
-                    imageBlobs.forEach((blob, index) => {
-                        formData.append('files', blob, `page-${index + 1}.jpg`);
-                    });
-                }
-
-            } catch (error) {
-                console.error("PDF Conversion failed:", error);
-                setMessage("Failed to convert PDF. Please try uploading images directly.");
-                setIsLoading(false);
-                return;
-            }
-        } else if (file) {
-            formData.delete('file');
-            formData.append('files', file);
-        }
-
-        setConversionStatus("Analyzing transcript with AI...")
+        setStatus("Extracting text and processing with AI...")
         const result = await uploadTranscript(formData)
 
         setIsLoading(false)
-        setConversionStatus(null)
+        setStatus(null)
 
         if (result.success) {
             setOpen(false)
+            setSelectedFile(null)
             alert(result.message)
         } else {
             setMessage(result.error as string)
         }
     }
 
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] || null
+        setSelectedFile(file)
+        setMessage(null)
+    }
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+            setOpen(isOpen)
+            if (!isOpen) {
+                setSelectedFile(null)
+                setMessage(null)
+                setStatus(null)
+            }
+        }}>
             <DialogTrigger asChild>
                 <Button variant="outline" size="lg" className="shadow-none font-semibold">
                     <CloudUpload className="mr-2 h-4 w-4" /> Upload Transcript
@@ -112,17 +69,39 @@ export function UploadTranscriptDialog() {
                 <DialogHeader>
                     <DialogTitle>Upload Transcript</DialogTitle>
                     <DialogDescription>
-                        Upload your full transcript (PDF or Images). We'll process all pages automatically.
+                        Upload your IIITD transcript as a PDF file. We'll extract course codes, names, credits, and grades automatically.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="transcript">Transcript (PDF or Images)</Label>
-                        <Input id="transcript" name="file" type="file" accept=".pdf, .png, .jpg, .jpeg" required />
+                        <Label htmlFor="transcript">Transcript (PDF only)</Label>
+                        <Input
+                            id="transcript"
+                            name="file"
+                            type="file"
+                            accept=".pdf"
+                            required
+                            onChange={handleFileChange}
+                        />
+                        {selectedFile && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <FileText className="h-4 w-4" />
+                                <span>{selectedFile.name}</span>
+                            </div>
+                        )}
                     </div>
 
-                    {conversionStatus && (
-                        <p className="text-sm text-blue-600 animate-pulse font-medium">{conversionStatus}</p>
+                    <div className="text-xs text-muted-foreground bg-muted p-3 rounded-md">
+                        <p className="font-medium mb-1">Tips for best results:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                            <li>Use the official text-based PDF from ERP</li>
+                            <li>Scanned/image PDFs won't work</li>
+                            <li>All semesters will be imported</li>
+                        </ul>
+                    </div>
+
+                    {status && (
+                        <p className="text-sm text-blue-600 animate-pulse font-medium">{status}</p>
                     )}
 
                     {message && (
@@ -130,7 +109,7 @@ export function UploadTranscriptDialog() {
                     )}
 
                     <DialogFooter>
-                        <Button type="submit" disabled={isLoading}>
+                        <Button type="submit" disabled={isLoading || !selectedFile}>
                             {isLoading ? "Processing..." : "Import Transcript"}
                         </Button>
                     </DialogFooter>

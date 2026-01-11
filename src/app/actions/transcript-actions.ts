@@ -3,9 +3,8 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-
-
 import { GRADE_POINTS, calculateSGPA } from "@/lib/gpa-calculations"
+import OpenAI from "openai";
 
 export async function uploadTranscript(formData: FormData) {
     const session = await auth()
@@ -19,138 +18,105 @@ export async function uploadTranscript(formData: FormData) {
     }
 
     try {
-        const OpenAI = require("openai");
+        const PDFParser = require("pdf2json");
         const openai = new OpenAI();
-        const fs = require('fs');
-        const path = require('path');
-        const os = require('os');
 
-        // 2. Handle Multiple Files
-        const rawFiles = formData.getAll('files') as File[];
-        const isSummer = formData.get('isSummer') === 'on'; // Checkbox sends 'on' if checked
+        // Get the uploaded file
+        const file = formData.get('file') as File;
+        const isSummer = formData.get('isSummer') === 'on';
 
-        // Fallback for previous single file usage (security check)
-        if (rawFiles.length === 0) {
-            const singleFile = formData.get('file') as File;
-            if (singleFile) rawFiles.push(singleFile);
+        if (!file) {
+            return { success: false, error: "No file uploaded" };
         }
 
-        if (rawFiles.length === 0) {
-            return { success: false, error: "No files uploaded" };
-        }
+        console.log(`Processing file: ${file.name}, type: ${file.type}`);
 
-        console.log(`Processing ${rawFiles.length} files...`);
+        // Read the file as buffer
+        const buffer = Buffer.from(await file.arrayBuffer());
 
-        const openAIFileIds: string[] = [];
-        const imageContentBlocks: any[] = [];
+        // Extract text from PDF using pdf2json
+        let textContent = "";
 
-        // Upload all files to OpenAI
-        for (const file of rawFiles) {
-            const buffer = Buffer.from(await file.arrayBuffer());
+        if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
+            try {
+                const pdfParser = new PDFParser(null, 1); // 1 = text only mode
 
-            // Determine extension (default to jpg for converted files, or preserve original)
-            let extension = "jpg";
-            if (file.type === "image/png") extension = "png";
+                // Promisify the event-based library
+                textContent = await new Promise<string>((resolve, reject) => {
+                    pdfParser.on("pdfParser_dataError", (errData: any) => {
+                        reject(new Error(errData.parserError || "PDF parsing failed"));
+                    });
 
-            // Use a unique name for each
-            const tempFilePath = path.join(os.tmpdir(), `transcript-part-${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`);
-            fs.writeFileSync(tempFilePath, buffer);
+                    pdfParser.on("pdfParser_dataReady", () => {
+                        // pdf2json returns URL-encoded text, decode it
+                        const rawText = pdfParser.getRawTextContent();
+                        resolve(rawText);
+                    });
 
-            const openAIFile = await openai.files.create({
-                file: fs.createReadStream(tempFilePath),
-                purpose: "vision", // Always use vision now as we convert PDF on client
-            });
+                    // Parse the buffer
+                    pdfParser.parseBuffer(buffer);
+                });
 
-            openAIFileIds.push(openAIFile.id);
-            imageContentBlocks.push({
-                type: "image_file",
-                image_file: { file_id: openAIFile.id }
-            });
-        }
-
-        // 3. Create Assistant (Ephemeral)
-        const assistant = await openai.beta.assistants.create({
-            name: "Transcript Parser",
-            instructions: "You are a specialized parser for IIIT Delhi academic transcripts. Your goal is to extract structured JSON data from provided images. You must be extremely precise with Course Codes (e.g. CSE101, MTH100) and Grades.",
-            model: "gpt-4o",
-            temperature: 0.1, // Low temperature for factual extraction
-            tools: [{ type: "code_interpreter" }],
-            response_format: { type: "json_object" }
-        });
-
-        // 4. Create Thread
-        const userMessageContent = [
-            {
-                type: "text",
-                text: `Analyze the provided transcript images. Each image represents a page of the same document.
-            
-            The transcript is from IIIT Delhi.
-            Structure: "Course Code" | "Course Name" | "Credits" | "Grade" | "Type".
-            
-            GOAL: Extract ALL semesters and courses in the correct chronological order.
-
-            Steps:
-            1. Scan through the pages sequentially.
-            2. Identify Semester Headers (e.g. "Monsoon 2023", "Semester 1", "Summer Term").
-            3. Extract all courses listed under each semester.
-            4. Verify Course Codes (e.g. CSE101, ECE111).
-            
-            CRITICAL RULES:
-            - Capture EVERY semester found.
-            - If a semester is "Summer", ensure the semesterName includes "Summer".
-            - Merge data appearing across page breaks if necessary.
-            
-            Output JSON matching this schema:
-            {
-                "semesters": [
-                    {
-                        "semesterName": "string",
-                        "courses": [
-                            { "code": "string", "name": "string", "credits": 4, "grade": "string", "type": "string" }
-                        ]
-                    }
-                ]
+                console.log("Extracted text length:", textContent.length);
+            } catch (pdfError) {
+                console.error("PDF parsing error:", pdfError);
+                return { success: false, error: "Failed to parse PDF. Please ensure the PDF is text-based (not scanned)." };
             }
-            
-            IMPORTANT: Return ONLY the JSON object.`
-            },
-            ...imageContentBlocks
-        ];
+        } else {
+            return { success: false, error: "Please upload a PDF file." };
+        }
 
-        const thread = await openai.beta.threads.create({
+        if (!textContent || textContent.trim().length < 100) {
+            return { success: false, error: "Could not extract text from PDF. It may be a scanned image. Please upload a text-based PDF." };
+        }
+
+        // Use Chat Completions API for text parsing
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            temperature: 0.1,
+            response_format: { type: "json_object" },
             messages: [
                 {
+                    role: "system",
+                    content: `You are a specialized parser for IIIT Delhi academic transcripts. Extract structured course data from the provided text.
+
+OUTPUT FORMAT (strict JSON):
+{
+    "semesters": [
+        {
+            "semesterName": "Monsoon 2021",
+            "courses": [
+                { "code": "CSE101", "name": "Introduction to Programming", "credits": 4, "grade": "A", "type": "Core" }
+            ]
+        }
+    ]
+}
+
+CRITICAL EXTRACTION RULES:
+1. Course Code: Extract the EXACT code like CSE101, MTH100, ECO223, BTP499, etc. This is REQUIRED.
+2. Course Name: Full name of the course
+3. Credits: Numeric value (usually 2, 4, or 6)
+4. Grade: Single grade like A+, A, A-, B+, B, B-, C+, C, C-, D, F, W, I, S, X
+5. Type: One of - "Core", "Elective", "OC" (Online Course), "Thesis", or extract from transcript
+
+SEMESTER DETECTION:
+- Look for patterns like "Monsoon 2021", "Winter 2022", "Summer 2023"
+- Or "Semester 1", "Semester 2", etc.
+- Summer terms should include "Summer" in the name
+
+Return ONLY valid JSON. Include ALL semesters and ALL courses found.`
+                },
+                {
                     role: "user",
-                    content: userMessageContent
+                    content: `Parse this IIIT Delhi transcript and extract all semesters and courses:\n\n${textContent}`
                 }
             ]
         });
 
-        // 5. Run
-        const run = await openai.beta.threads.runs.createAndPoll(
-            thread.id,
-            { assistant_id: assistant.id }
-        );
+        let jsonString = response.choices[0]?.message?.content || "";
+        console.log("OpenAI Response:", jsonString.substring(0, 500));
 
-        if (run.status !== 'completed') {
-            console.error("OpenAI Run failed:", run);
-            throw new Error(`OpenAI Run status: ${run.status}`);
-        }
-
-        const messages = await openai.beta.threads.messages.list(
-            thread.id
-        );
-
-        const lastMessage = messages.data[0];
-        let jsonString = "";
-
-        if (lastMessage.content[0].type === 'text') {
-            jsonString = lastMessage.content[0].text.value;
-        }
-
-        console.log("OpenAI Response:", jsonString);
-
-        // Cleanup: Clean JSON markdown if present
+        // Clean JSON markdown if present
         jsonString = jsonString.replace(/```json/g, "").replace(/```/g, "").trim();
 
         // Robust JSON extraction
@@ -159,15 +125,11 @@ export async function uploadTranscript(formData: FormData) {
             jsonString = jsonMatch[0];
         } else {
             console.error("No JSON found in response");
-            return { success: false, error: "Failed to parse data from AI response: " + jsonString.substring(0, 100) };
+            return { success: false, error: "Failed to parse data from AI response" };
         }
 
         const parsedData = JSON.parse(jsonString);
         const parsedSemesters = parsedData.semesters;
-
-        // Cleanup OpenAI resources (Optional but good practice to delete file)
-        // await openai.files.del(openAIFile.id); // Keep for now or delete
-        // await openai.beta.assistants.del(assistant.id);
 
         if (!parsedSemesters || parsedSemesters.length === 0) {
             return { success: false, error: "Could not detect any semesters in the transcript." }
@@ -176,7 +138,7 @@ export async function uploadTranscript(formData: FormData) {
         let semestersAdded = 0;
         let coursesAdded = 0;
 
-        // direct update without transaction to avoid pooler timeouts
+        // Get existing semesters to determine next semester number
         const existingSemesters = await prisma.semester.findMany({
             where: { userId: session!.user!.id }
         });
@@ -184,11 +146,10 @@ export async function uploadTranscript(formData: FormData) {
         let nextSemNum = (existingSemesters.length > 0 ? Math.max(...existingSemesters.map((s: any) => s.semesterNum)) : 0) + 1;
 
         for (const sem of parsedSemesters) {
-            // Try to map semester name to number if possible, else sequential
             let thisSemNum = nextSemNum;
             let type: "REGULAR" | "SUMMER" = "REGULAR";
 
-            if (isSummer || sem.semesterName.toLowerCase().includes("summer")) {
+            if (isSummer || sem.semesterName?.toLowerCase().includes("summer")) {
                 type = "SUMMER";
             }
 
@@ -201,29 +162,34 @@ export async function uploadTranscript(formData: FormData) {
                 }
             });
 
-            nextSemNum++; // Increment for next loop
+            nextSemNum++;
             semestersAdded++;
 
             const createdCourses: any[] = [];
 
             // Add Courses
             for (const course of sem.courses) {
+                // Format name as "CODE-Name" for consistent parsing in requirements
+                const courseName = course.code
+                    ? `${course.code}-${course.name}`
+                    : course.name;
+
                 const newCourse = await prisma.course.create({
                     data: {
                         semesterId: newSem.id,
-                        name: course.name,
-                        credits: course.credits,
+                        name: courseName,
+                        code: course.code || null,
+                        credits: course.credits || 4,
                         grade: course.grade || "N/A",
                         gradePoints: GRADE_POINTS[course.grade] ?? 0,
-                        code: course.code,
-                        type: course.type || "REGULAR"
+                        type: course.type || "Elective"
                     }
                 });
                 coursesAdded++;
                 createdCourses.push(newCourse);
             }
 
-            // Calculate and Calculate SGPA for this semester
+            // Calculate SGPA for this semester
             const sgpa = calculateSGPA(createdCourses);
             await prisma.semester.update({
                 where: { id: newSem.id },
@@ -233,10 +199,11 @@ export async function uploadTranscript(formData: FormData) {
 
         revalidatePath("/semesters")
         revalidatePath("/dashboard")
-        return { success: true, message: `Successfully imported ${semestersAdded} semesters and ${coursesAdded} courses via AI.` }
+        revalidatePath("/requirements")
+        return { success: true, message: `Successfully imported ${semestersAdded} semesters and ${coursesAdded} courses.` }
 
     } catch (error) {
         console.error("Transcript upload error:", error)
-        return { success: false, error: "Failed to process transcript with AI. " + (error as any).message }
+        return { success: false, error: "Failed to process transcript. " + (error as any).message }
     }
 }
