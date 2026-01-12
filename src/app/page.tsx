@@ -116,6 +116,27 @@ export default async function Home() {
                   <ArrowRight className="ml-2 h-4 w-4 opacity-50 group-hover/btn:translate-x-1 transition-transform" />
                 </SubmitButton>
               </form>
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-muted-foreground/20" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                </div>
+              </div>
+
+              <form
+                action={async () => {
+                  "use server"
+                  await signIn("credentials", { redirectTo: "/dashboard" })
+                }}
+              >
+                <Button variant="outline" className="w-full h-12 text-base font-medium hover:bg-muted/50 transition-colors group/guest" size="lg">
+                  Login as Guest
+                  <ArrowRight className="ml-2 h-4 w-4 opacity-50 group-hover/guest:translate-x-1 transition-transform" />
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>

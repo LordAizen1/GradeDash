@@ -3,14 +3,40 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import authConfig from "./auth.config"
 
+import Credentials from "next-auth/providers/credentials"
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
     session: { strategy: "jwt" },
     ...authConfig,
+    providers: [
+        ...authConfig.providers,
+        Credentials({
+            name: "Guest",
+            credentials: {},
+            async authorize(credentials) {
+                // Upsert Guest User to ensure it exists
+                const guestUser = await prisma.user.upsert({
+                    where: { email: "guest@grade-dash.demo" },
+                    update: {}, // No updates needed, just ensure existence
+                    create: {
+                        email: "guest@grade-dash.demo",
+                        name: "Guest Student",
+                        image: "", // Optional: specific guest avatar
+                        batch: 2024,
+                        branch: "CSE", // Default branch
+                        currentSem: 6, // Default sem
+                    }
+                })
+                return guestUser
+            }
+        })
+    ],
     callbacks: {
         ...authConfig.callbacks,
         async signIn({ user }) {
-            if (user.email && user.email.endsWith("@iiitd.ac.in")) {
+            // Allow IIITD emails OR the specific Guest email
+            if (user.email && (user.email.endsWith("@iiitd.ac.in") || user.email === "guest@grade-dash.demo")) {
                 return true
             }
             return "/?error=InvalidDomain"
