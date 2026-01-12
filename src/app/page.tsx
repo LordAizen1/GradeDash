@@ -132,7 +132,7 @@ export default async function Home() {
                   await signIn("credentials", { redirectTo: "/dashboard" })
                 }}
               >
-                <Button variant="outline" className="w-full h-12 text-base font-medium hover:bg-muted/50 transition-colors group/guest" size="lg">
+                <Button variant="outline" className="w-full h-12 text-base font-medium border-border dark:border-white/20 hover:bg-accent hover:text-foreground transition-colors group/guest" size="lg">
                   Login as Guest
                   <ArrowRight className="ml-2 h-4 w-4 opacity-50 group-hover/guest:translate-x-1 transition-transform" />
                 </Button>
