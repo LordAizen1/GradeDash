@@ -17,13 +17,25 @@ import { addCourse } from "@/app/actions/semester-actions"
 import { useState } from "react"
 import { CirclePlus } from "lucide-react"
 
-export function AddCourseDialog({ semesterId }: { semesterId: string }) {
+import { toast } from "sonner"
+
+export function AddCourseDialog({ semesterId, isGuest = false }: { semesterId: string, isGuest?: boolean }) {
     const [open, setOpen] = useState(false)
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={(e) => {
+                        if (isGuest) {
+                            e.preventDefault()
+                            toast.error("Guest users cannot add courses.")
+                        }
+                    }}
+                >
                     <CirclePlus className="h-4 w-4" /> Add Course
                 </Button>
             </DialogTrigger>

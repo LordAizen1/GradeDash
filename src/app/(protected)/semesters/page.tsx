@@ -13,6 +13,8 @@ export default async function SemestersPage() {
         orderBy: { semesterNum: 'asc' }
     })
 
+    const isGuest = session.user.email === "guest@grade-dash.demo"
+
     return (
         <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto space-y-8">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b-0 pb-4">
@@ -22,7 +24,7 @@ export default async function SemestersPage() {
                 </div>
             </header>
 
-            <SemesterList semesters={semesters} />
+            <SemesterList semesters={semesters} isGuest={isGuest} />
         </div>
     )
 }

@@ -16,7 +16,9 @@ import { Label } from "@/components/ui/label"
 import { CloudUpload, FileText } from "lucide-react"
 import { uploadTranscript } from "@/app/actions/transcript-actions"
 
-export function UploadTranscriptDialog() {
+import { toast } from "sonner"
+
+export function UploadTranscriptDialog({ isGuest = false }: { isGuest?: boolean }) {
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState<string | null>(null)
@@ -61,7 +63,17 @@ export function UploadTranscriptDialog() {
             }
         }}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="lg" className="shadow-none font-semibold">
+                <Button
+                    variant="outline"
+                    size="lg"
+                    className="shadow-none font-semibold"
+                    onClick={(e) => {
+                        if (isGuest) {
+                            e.preventDefault()
+                            toast.error("Guest users cannot upload transcripts.")
+                        }
+                    }}
+                >
                     <CloudUpload className="mr-2 h-4 w-4" /> Upload Transcript
                 </Button>
             </DialogTrigger>

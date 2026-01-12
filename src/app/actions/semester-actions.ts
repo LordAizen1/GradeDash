@@ -17,6 +17,7 @@ const courseSchema = z.object({
 export async function addSemester(semesterNum: number, type: "REGULAR" | "SUMMER" = "REGULAR") {
     const session = await auth()
     if (!session?.user?.id) throw new Error("Unauthorized")
+    if (session.user.email === "guest@grade-dash.demo") throw new Error("Guest users cannot perform this action.")
 
     await prisma.semester.create({
         data: {
@@ -31,6 +32,7 @@ export async function addSemester(semesterNum: number, type: "REGULAR" | "SUMMER
 export async function deleteSemester(semesterId: string) {
     const session = await auth()
     if (!session?.user?.id) throw new Error("Unauthorized")
+    if (session.user.email === "guest@grade-dash.demo") throw new Error("Guest users cannot perform this action.")
 
     await prisma.semester.delete({
         where: {
@@ -44,6 +46,7 @@ export async function deleteSemester(semesterId: string) {
 export async function addCourse(semesterId: string, formData: FormData) {
     const session = await auth()
     if (!session?.user?.id) throw new Error("Unauthorized")
+    if (session.user.email === "guest@grade-dash.demo") throw new Error("Guest users cannot perform this action.")
 
     const rawData = {
         name: formData.get("name"),
@@ -78,6 +81,7 @@ export async function addCourse(semesterId: string, formData: FormData) {
 export async function deleteCourse(courseId: string, semesterId: string) {
     const session = await auth()
     if (!session?.user?.id) throw new Error("Unauthorized")
+    if (session.user.email === "guest@grade-dash.demo") throw new Error("Guest users cannot perform this action.")
 
     await prisma.course.delete({ where: { id: courseId } })
     await updateSemesterSGPA(semesterId)

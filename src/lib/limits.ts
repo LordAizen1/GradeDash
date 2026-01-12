@@ -5,7 +5,7 @@ const LIMITS = {
     upload: 5
 };
 
-export async function checkRateLimit(userId: string, type: 'chat' | 'upload'): Promise<{ success: boolean; remaining: number }> {
+export async function checkRateLimit(userId: string, type: 'chat' | 'upload', maxLimit?: number): Promise<{ success: boolean; remaining: number }> {
     const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -35,12 +35,13 @@ export async function checkRateLimit(userId: string, type: 'chat' | 'upload'): P
                 lastResetDate: now
             }
         });
-        return { success: true, remaining: LIMITS[type] - 1 };
+        const limitToCheck = maxLimit ?? LIMITS[type];
+        return { success: true, remaining: limitToCheck - 1 };
     }
 
     // Check Limit
     const currentCount = type === 'chat' ? user.dailyMessageCount : user.dailyUploadCount;
-    const limit = LIMITS[type];
+    const limit = maxLimit ?? LIMITS[type];
 
     if (currentCount >= limit) {
         return { success: false, remaining: 0 };

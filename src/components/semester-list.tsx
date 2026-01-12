@@ -15,12 +15,22 @@ import { Trash2, CirclePlus, X } from "lucide-react"
 import { calculateCGPA } from "@/lib/gpa-calculations"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { toast } from "sonner"
 
 interface SemesterListProps {
     semesters: (Semester & { courses: Course[] })[]
+    isGuest?: boolean
 }
 
-export function SemesterList({ semesters }: SemesterListProps) {
+export function SemesterList({ semesters, isGuest = false }: SemesterListProps) {
+    const handleGuestAction = (e: React.MouseEvent | React.FormEvent, actionDescription: string) => {
+        if (isGuest) {
+            e.preventDefault()
+            toast.error(`Guest users cannot ${actionDescription}.`)
+            return true
+        }
+        return false
+    }
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg border border-border">
@@ -29,13 +39,19 @@ export function SemesterList({ semesters }: SemesterListProps) {
                     <p className="text-sm text-muted-foreground">Add semesters to track your progress</p>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-end mt-2 md:mt-0">
-                    <UploadTranscriptDialog />
-                    <form action={() => addSemester((semesters.length > 0 ? semesters[semesters.length - 1].semesterNum : 0) + 1, "SUMMER")}>
+                    <UploadTranscriptDialog isGuest={isGuest} />
+                    <form
+                        action={() => addSemester((semesters.length > 0 ? semesters[semesters.length - 1].semesterNum : 0) + 1, "SUMMER")}
+                        onSubmit={(e) => handleGuestAction(e, "add semesters")}
+                    >
                         <Button type="submit" variant="secondary" size="lg" className="shadow-none font-semibold w-full md:w-auto">
                             <CirclePlus className="mr-2 h-4 w-4" /> Add Summer
                         </Button>
                     </form>
-                    <form action={() => addSemester((semesters.length > 0 ? semesters[semesters.length - 1].semesterNum : 0) + 1, "REGULAR")}>
+                    <form
+                        action={() => addSemester((semesters.length > 0 ? semesters[semesters.length - 1].semesterNum : 0) + 1, "REGULAR")}
+                        onSubmit={(e) => handleGuestAction(e, "add semesters")}
+                    >
                         <Button type="submit" size="lg" className="shadow-none font-semibold w-full md:w-auto">
                             <CirclePlus className="mr-2 h-4 w-4" /> Add Semester
                         </Button>
@@ -80,6 +96,7 @@ export function SemesterList({ semesters }: SemesterListProps) {
                                         className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "md:hidden h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10")}
                                         onClick={(e) => {
                                             e.stopPropagation()
+                                            if (handleGuestAction(e, "delete semesters")) return
                                             if (confirm("Are you sure you want to delete this semester? All courses in it will be lost.")) {
                                                 deleteSemester(sem.id)
                                             }
@@ -113,6 +130,7 @@ export function SemesterList({ semesters }: SemesterListProps) {
                                         className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "hidden md:inline-flex h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10")}
                                         onClick={(e) => {
                                             e.stopPropagation()
+                                            if (handleGuestAction(e, "delete semesters")) return
                                             if (confirm("Are you sure you want to delete this semester? All courses in it will be lost.")) {
                                                 deleteSemester(sem.id)
                                             }
@@ -127,7 +145,7 @@ export function SemesterList({ semesters }: SemesterListProps) {
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center border-b border-border pb-4">
                                     <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Course List</p>
-                                    <AddCourseDialog semesterId={sem.id} />
+                                    <AddCourseDialog semesterId={sem.id} isGuest={isGuest} />
                                 </div>
 
                                 <div className="space-y-3">
@@ -155,7 +173,10 @@ export function SemesterList({ semesters }: SemesterListProps) {
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                                                    onClick={() => deleteCourse(course.id, sem.id)}
+                                                    onClick={(e) => {
+                                                        if (handleGuestAction(e, "delete courses")) return
+                                                        deleteCourse(course.id, sem.id)
+                                                    }}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>

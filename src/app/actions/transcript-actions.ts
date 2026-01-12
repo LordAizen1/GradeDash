@@ -19,6 +19,11 @@ export async function uploadTranscript(formData: FormData) {
         return { success: false, error: "OpenAI API Key is missing. Please add OPENAI_API_KEY to .env.local" };
     }
 
+    // Guest Restriction
+    if (session.user.email === "guest@grade-dash.demo") {
+        return { success: false, error: "Guest users cannot upload transcripts. Please sign in with your institute email." };
+    }
+
     // Rate Limit Check
     const limit = await checkRateLimit(session.user.id, 'upload');
     if (!limit.success) {
