@@ -4,7 +4,7 @@ import { useAssistant } from 'ai/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import { ChevronDown, SendHorizontal, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -33,7 +33,7 @@ export function ChatWidget() {
                     <CardHeader className="bg-primary px-3 py-2.5 flex flex-row items-center justify-between space-y-0 rounded-t-xl shrink-0">
                         <div className="flex items-center gap-2">
                             <div className="bg-white/20 p-1.5 rounded-full">
-                                <Bot className="h-5 w-5 text-primary-foreground" />
+                                <Sparkles className="h-5 w-5 text-primary-foreground" />
                             </div>
                             <div>
                                 <CardTitle className="text-base text-primary-foreground">GradeDash Guide</CardTitle>
@@ -41,7 +41,7 @@ export function ChatWidget() {
                             </div>
                         </div>
                         <Button variant="ghost" size="icon" onClick={toggleOpen} className="text-primary-foreground hover:bg-white/20 h-8 w-8">
-                            <X className="h-5 w-5" />
+                            <ChevronDown className="h-5 w-5" />
                         </Button>
                     </CardHeader>
 
@@ -50,7 +50,7 @@ export function ChatWidget() {
                         <div className="flex-1 overflow-y-auto p-3 space-y-4" ref={scrollRef}>
                             {messages.length === 0 && (
                                 <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-4">
-                                    <Bot className="h-10 w-10 mb-2 opacity-20" />
+                                    <Sparkles className="h-10 w-10 mb-2 opacity-20" />
                                     <p className="text-sm">Hi! I can help you understand IIITD regulations or specific branch requirements.</p>
                                 </div>
                             )}
@@ -99,7 +99,7 @@ export function ChatWidget() {
                                     disabled={status === 'in_progress'}
                                 />
                                 <Button type="submit" size="icon" disabled={status === 'in_progress' || !input.trim()}>
-                                    <Send className="h-4 w-4" />
+                                    <SendHorizontal className="h-4 w-4" />
                                 </Button>
                             </form>
                         </div>
@@ -114,7 +114,7 @@ export function ChatWidget() {
                     size="lg"
                     className="h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-transform bg-primary text-primary-foreground"
                 >
-                    <MessageCircle className="h-7 w-7" />
+                    <Sparkles className="h-7 w-7" />
                 </Button>
             )}
         </div>

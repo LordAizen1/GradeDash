@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, GraduationCap, Calculator, LogOut, ChevronUp, Sparkles, ClipboardCheck } from "lucide-react"
+import { LayoutDashboard, GraduationCap, Calculator, LogOut, ChevronUp, Command, ClipboardCheck } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -60,7 +60,7 @@ export function AppSidebar({ user }: { user: any }) {
             <SidebarHeader className="h-12 p-2 border-b border-sidebar-border flex justify-center">
                 <div className="flex items-center gap-2 font-bold text-xl text-sidebar-foreground group-data-[collapsible=icon]:justify-center">
                     <div className="bg-primary text-primary-foreground p-1.5 rounded-lg shrink-0">
-                        <Sparkles className="h-5 w-5 fill-current" />
+                        <Command className="h-5 w-5" />
                     </div>
                     <span className="group-data-[collapsible=icon]:hidden">GradeDash</span>
                 </div>

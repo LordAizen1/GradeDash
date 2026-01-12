@@ -165,3 +165,19 @@
     animation: none;
     mix-blend-mode: normal;
 }
+
+/* Custom Scrollbar Styles */
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors rounded-full;
+  }
+}
