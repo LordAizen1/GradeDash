@@ -172,7 +172,7 @@ export function GraduationRequirementsDisplay({ progress, cgpa }: Props) {
                                 Online Courses
                             </p>
                             <p className={`text-sm ${!progress.online.withinLimit ? 'text-red-100' : isOCComplete ? 'text-green-100' : 'text-muted-foreground'}`}>
-                                {progress.online.earned} / {progress.online.max} max
+                                {progress.online.earned} / {progress.online.max} credits
                             </p>
                         </div>
                     </CardContent>
@@ -193,7 +193,7 @@ export function GraduationRequirementsDisplay({ progress, cgpa }: Props) {
                                 IP/IS/UR
                             </p>
                             <p className={`text-sm ${!progress.independentWork.withinLimit ? 'text-red-100' : isIPComplete ? 'text-green-100' : 'text-muted-foreground'}`}>
-                                {progress.independentWork.earned} / {progress.independentWork.max} max
+                                {progress.independentWork.earned} / {progress.independentWork.max} credits
                             </p>
                         </div>
                     </CardContent>
@@ -203,7 +203,7 @@ export function GraduationRequirementsDisplay({ progress, cgpa }: Props) {
             <Separator />
 
             {/* Honors Eligibility */}
-            <Card className="bg-gradient-to-r from-amber-500 to-orange-500 border-none shadow-none">
+            <Card className="bg-gradient-to-r from-rose-500 to-pink-600 border-none shadow-none">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-white">
                         <Award className="h-6 w-6" />

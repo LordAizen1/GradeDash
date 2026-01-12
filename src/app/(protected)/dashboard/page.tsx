@@ -61,13 +61,22 @@ export default async function DashboardPage() {
             return ["F", "W", "I", "X"].includes(course.grade) ? sum : sum + course.credits;
         }, 0);
 
+        // Check if there are any attempted courses (to exclude semesters with only N/A or empty grades)
+        const hasAttemptedCredits = sem.courses.some((c: any) => {
+             const g = c.grade?.trim().toUpperCase() || '';
+             const isExcluded = ["S", "X", "W", "I", "N/A", "WITHDRAWN", ""].includes(g) || g.includes("WITHDRAW");
+             return !isExcluded;
+        });
+
+        if (!hasAttemptedCredits) return null;
+
         return {
             name,
             sgpa: sem.sgpa || calculateSGPA(sem.courses),
             cgpa: cgpa,
             credits: semCredits
         }
-    })
+    }).filter((s: any) => s !== null);
 
     const isEmpty = user.semesters.length === 0
     const regularSemCount = user.semesters.filter((s: any) => s.type === "REGULAR").length;
