@@ -35,6 +35,8 @@ jobs:
       DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
       NEXTAUTH_SECRET: "ci-test-secret-do-not-use-in-production"
       NEXTAUTH_URL: "http://localhost:3000"
+      OPENAI_API_KEY: "sk-ci-mock-key-not-real"
+      ASSISTANT_ID: "asst_ci_mock_id"
     
     steps:
       # STEP 1: Checkout code
