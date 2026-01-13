@@ -64,7 +64,7 @@ type CalcSemester = Pick<Semester, "semesterNum"> & { courses: CalcCourse[] };
 
 export function calculateCGPA(semesters: CalcSemester[], completedSemestersCount: number): { cgpa: number; calculateCgpaCredits: number; earnedCredits: number; removedCredits: number } {
     // Aggregate courses
-    let cgpaCourses: CalcCourse[] = [];
+    const cgpaCourses: CalcCourse[] = [];
     let earnedCredits = 0;
 
     semesters.forEach(sem => {
@@ -94,7 +94,7 @@ export function calculateCGPA(semesters: CalcSemester[], completedSemestersCount
     });
 
     // Calculate Total Credits and Points for CGPA
-    let totalCgpaCredits = cgpaCourses.reduce((sum, c) => sum + c.credits, 0);
+    const totalCgpaCredits = cgpaCourses.reduce((sum, c) => sum + c.credits, 0);
 
     // Exclusion Logic (Worst 8 credits) applies to CGPA calculation
     let baseline = 0;

@@ -165,7 +165,7 @@ Return ONLY valid JSON. Include ALL semesters and ALL courses found.`
         let nextSemNum = (existingSemesters.length > 0 ? Math.max(...existingSemesters.map((s: any) => s.semesterNum)) : 0) + 1;
 
         for (const sem of parsedSemesters) {
-            let thisSemNum = nextSemNum;
+            const thisSemNum = nextSemNum;
             let type: "REGULAR" | "SUMMER" = "REGULAR";
 
             if (isSummer || sem.semesterName?.toLowerCase().includes("summer")) {

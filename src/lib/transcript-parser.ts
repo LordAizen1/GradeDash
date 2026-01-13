@@ -128,13 +128,13 @@ export function parseTranscript(text: string): ParsedSemester[] {
                     // Clean up common type words if they are at the end of name
                     const typeWords = ["Mandatory", "(Core)", "Open", "Elective", "HSS", "BS", "Engineering", "Science"];
 
-                    let nameEnd = nameTokens.length;
+                    const nameEnd = nameTokens.length;
                     // Heuristic: remove known type words from the end
                     // ... simplicity: just join them for name
-                    let name = nameTokens.join(" ");
+                    const name = nameTokens.join(" ");
 
                     // Optional: Extract Type
-                    let type = "REGULAR";
+                    const type = "REGULAR";
 
                     currentSemester.courses.push({
                         code,

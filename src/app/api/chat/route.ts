@@ -54,7 +54,7 @@ export async function POST(req: Request) {
             });
 
             // forward the run status and message deltas to the client
-            let runResult = await forwardStream(runStream);
+            const runResult = await forwardStream(runStream);
         },
     );
 
