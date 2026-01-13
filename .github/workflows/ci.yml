@@ -28,6 +28,14 @@ jobs:
   build-and-lint:
     runs-on: ubuntu-latest  # Use a fresh Ubuntu VM for each run
     
+    # ENVIRONMENT VARIABLES FOR CI
+    # These are mock values so Prisma and Next.js can build
+    # Real secrets are only used in production (Vercel handles this)
+    env:
+      DATABASE_URL: "postgresql://user:password@localhost:5432/testdb"
+      NEXTAUTH_SECRET: "ci-test-secret-do-not-use-in-production"
+      NEXTAUTH_URL: "http://localhost:3000"
+    
     steps:
       # STEP 1: Checkout code
       # This clones your repository into the VM so we can work with it
@@ -64,3 +72,4 @@ jobs:
       # Vitest runs all .test.ts files to catch regressions
       - name: Run tests
         run: npm test
+
