@@ -1,0 +1,66 @@
+# =============================================================================
+# GradeDash CI Pipeline
+# =============================================================================
+# This workflow runs on every push and pull request to the main branch.
+# It ensures code quality by running linting and build checks.
+#
+# KEY CONCEPTS FOR JUNIORS:
+# - `on`: Defines WHEN this workflow runs (push, pull_request, etc.)
+# - `jobs`: Groups of steps that run on a virtual machine
+# - `runs-on`: Which operating system to use (ubuntu-latest is common)
+# - `steps`: Individual commands that run sequentially
+# - `uses`: Imports a pre-built action from the GitHub Marketplace
+# - `run`: Executes a shell command
+# =============================================================================
+
+name: CI Pipeline
+
+# TRIGGER: When should this workflow run?
+on:
+  push:
+    branches: [main]        # Run on pushes to main
+  pull_request:
+    branches: [main]        # Run on PRs targeting main
+
+jobs:
+  # JOB 1: Build and Lint Check
+  # This job ensures your code compiles and follows style guidelines
+  build-and-lint:
+    runs-on: ubuntu-latest  # Use a fresh Ubuntu VM for each run
+    
+    steps:
+      # STEP 1: Checkout code
+      # This clones your repository into the VM so we can work with it
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # STEP 2: Setup Node.js
+      # Installs Node.js (version 20) and sets up npm caching for speed
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'      # Caches node_modules to speed up future runs
+
+      # STEP 3: Install dependencies
+      # `npm ci` is like `npm install` but faster and stricter
+      # It uses package-lock.json to ensure exact versions
+      - name: Install dependencies
+        run: npm ci
+
+      # STEP 4: Run linting
+      # ESLint checks your code for errors and style issues
+      # If this fails, you need to fix the lint errors before merging
+      - name: Run ESLint
+        run: npm run lint
+
+      # STEP 5: Build the application
+      # This compiles TypeScript and builds the Next.js app
+      # If this fails, there's a compilation error in your code
+      - name: Build application
+        run: npm run build
+
+      # STEP 6: Run tests
+      # Vitest runs all .test.ts files to catch regressions
+      - name: Run tests
+        run: npm test
