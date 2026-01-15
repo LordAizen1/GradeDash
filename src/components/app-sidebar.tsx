@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, GraduationCap, Calculator, LogOut, ChevronUp, Command, ClipboardCheck } from "lucide-react"
+import { LayoutDashboard, GraduationCap, Calculator, LogOut, ChevronUp, Command, ClipboardCheck, CalendarDays } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -15,7 +15,6 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarSeparator,
     SidebarRail,
 } from "@/components/ui/sidebar"
 import {
@@ -49,6 +48,11 @@ const items = [
         title: "Requirements",
         url: "/requirements",
         icon: ClipboardCheck,
+    },
+    {
+        title: "Calendar",
+        url: "/calendar",
+        icon: CalendarDays,
     },
 ]
 

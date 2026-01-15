@@ -5,6 +5,7 @@ import { calculateCGPA, calculateSGPA } from "@/lib/gpa-calculations"
 import { Card, CardContent } from "@/components/ui/card"
 import { DashboardCharts } from "@/components/dashboard-charts"
 import { AnimatedCounter } from "@/components/ui/animated-counter"
+import { ExamCountdown } from "@/components/exam-countdown"
 import Link from "next/link"
 import { ArrowUpRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -171,6 +172,7 @@ export default async function DashboardPage() {
                             </Card>
                         </Link>
                     </div>
+
 
                     {/* Chart Section */}
                     <div className="grid grid-cols-1">
