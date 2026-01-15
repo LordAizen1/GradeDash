@@ -106,7 +106,7 @@ export default async function CalendarPage() {
                     Academic Calendar
                 </h1>
                 <p className="text-lg text-muted-foreground">
-                    Important dates for Spring 2026
+                    Important dates for Winter 2026
                 </p>
             </header>
 
