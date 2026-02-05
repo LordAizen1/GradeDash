@@ -62,7 +62,7 @@ export async function uploadTranscript(formData: FormData) {
 
                 // Promisify the event-based library
                 textContent = await new Promise<string>((resolve, reject) => {
-                    pdfParser.on("pdfParser_dataError", (errData: any) => {
+                    pdfParser.on("pdfParser_dataError", (errData: { parserError?: string }) => {
                         reject(new Error(errData.parserError || "PDF parsing failed"));
                     });
 
@@ -162,7 +162,7 @@ Return ONLY valid JSON. Include ALL semesters and ALL courses found.`
             where: { userId: session!.user!.id }
         });
 
-        let nextSemNum = (existingSemesters.length > 0 ? Math.max(...existingSemesters.map((s: any) => s.semesterNum)) : 0) + 1;
+        let nextSemNum = (existingSemesters.length > 0 ? Math.max(...existingSemesters.map((s) => s.semesterNum)) : 0) + 1;
 
         for (const sem of parsedSemesters) {
             const thisSemNum = nextSemNum;
@@ -184,7 +184,7 @@ Return ONLY valid JSON. Include ALL semesters and ALL courses found.`
             nextSemNum++;
             semestersAdded++;
 
-            const createdCourses: any[] = [];
+            const createdCourses: Awaited<ReturnType<typeof prisma.course.create>>[] = [];
 
             // Add Courses
             for (const course of sem.courses) {
@@ -223,6 +223,6 @@ Return ONLY valid JSON. Include ALL semesters and ALL courses found.`
 
     } catch (error) {
         console.error("Transcript upload error:", error)
-        return { success: false, error: "Failed to process transcript. " + (error as any).message }
+        return { success: false, error: "Failed to process transcript. " + (error instanceof Error ? error.message : "Unknown error") }
     }
 }

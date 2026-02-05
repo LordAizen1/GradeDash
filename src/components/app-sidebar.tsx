@@ -56,7 +56,13 @@ const items = [
     },
 ]
 
-export function AppSidebar({ user }: { user: any }) {
+interface SidebarUser {
+    name?: string | null
+    email?: string | null
+    image?: string | null
+}
+
+export function AppSidebar({ user }: { user: SidebarUser }) {
     const pathname = usePathname()
 
     return (

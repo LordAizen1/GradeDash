@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { redirect } from "next/navigation"
+import { redirect, notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { calculateCGPA } from "@/lib/gpa-calculations"
 import { calculateRequirementsProgress } from "@/lib/graduation-requirements"
@@ -21,7 +21,7 @@ export default async function RequirementsPage() {
         }
     })
 
-    if (!user) return <div>User not found</div>
+    if (!user) notFound()
     if (!user.batch) redirect("/onboarding")
 
     // Flatten all courses

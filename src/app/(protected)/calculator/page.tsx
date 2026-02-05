@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { redirect } from "next/navigation"
+import { redirect, notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { calculateCGPA } from "@/lib/gpa-calculations"
 import { HypotheticalCalculator } from "@/components/hypothetical-calculator"
@@ -17,7 +17,7 @@ export default async function CalculatorPage() {
         }
     })
 
-    if (!user) return <div>User not found</div>
+    if (!user) notFound()
 
     const { cgpa, calculateCgpaCredits } = calculateCGPA(user.semesters, user.semesters.length)
 

@@ -41,29 +41,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
             return "/?error=InvalidDomain"
         },
-        async jwt({ token, user, trigger, session }) {
-            // Initial sign in or update
+        async jwt({ token, user }) {
             if (user) {
                 token.id = user.id
-                // @ts-ignore
-                token.batch = user.batch
-                // @ts-ignore
-                token.branch = user.branch
-                // @ts-ignore
-                token.currentSem = user.currentSem
+                token.batch = user.batch ?? null
+                token.branch = user.branch ?? null
+                token.currentSem = user.currentSem ?? null
             }
             return token
         },
-        // @ts-ignore
         async session({ session, token }) {
             if (session.user && token) {
-                // @ts-ignore
                 session.user.id = token.id as string
-                // @ts-ignore
                 session.user.batch = token.batch as number
-                // @ts-ignore
                 session.user.branch = token.branch as string
-                // @ts-ignore
                 session.user.currentSem = token.currentSem as number
             }
             return session

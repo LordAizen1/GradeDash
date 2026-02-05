@@ -1,70 +1,20 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarDays, GraduationCap, FileText, Presentation, Clock } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { CalendarDays, GraduationCap, FileText, Presentation, Clock, type LucideIcon } from "lucide-react"
 import { differenceInDays, isBefore, isWithinInterval, format } from "date-fns"
+import { academicEvents, type AcademicEvent } from "@/data/academic-calendar"
 
 export const dynamic = "force-dynamic";
 
-// Academic Calendar Events for 2026
-const academicEvents = [
-    {
-        id: "midsem",
-        title: "Midsemester Exams",
-        startDate: new Date(2026, 1, 21), // Feb 21
-        endDate: new Date(2026, 1, 28),   // Feb 28
-        icon: FileText,
-        color: "bg-violet-500",
-        lightColor: "text-violet-100",
-    },
-    {
-        id: "btp-report",
-        title: "BTP Report Submission",
-        startDate: new Date(2026, 3, 21), // Apr 21
-        endDate: new Date(2026, 3, 21),
-        icon: FileText,
-        color: "bg-amber-500",
-        lightColor: "text-amber-100",
-    },
-    {
-        id: "endsem",
-        title: "Endsemester Exams",
-        startDate: new Date(2026, 3, 23), // Apr 23
-        endDate: new Date(2026, 4, 2),    // May 2
-        icon: GraduationCap,
-        color: "bg-blue-500",
-        lightColor: "text-blue-100",
-    },
-    {
-        id: "btp-presentation",
-        title: "BTP Presentation",
-        startDate: new Date(2026, 4, 4),  // May 4
-        endDate: new Date(2026, 4, 4),
-        icon: Presentation,
-        color: "bg-emerald-500",
-        lightColor: "text-emerald-100",
-    },
-    {
-        id: "cw-presentation",
-        title: "CW Presentation",
-        startDate: new Date(2026, 4, 5),  // May 5
-        endDate: new Date(2026, 4, 5),
-        icon: Presentation,
-        color: "bg-cyan-500",
-        lightColor: "text-cyan-100",
-    },
-    {
-        id: "sg-presentation",
-        title: "SG Presentation",
-        startDate: new Date(2026, 4, 6),  // May 6
-        endDate: new Date(2026, 4, 6),
-        icon: Presentation,
-        color: "bg-pink-500",
-        lightColor: "text-pink-100",
-    },
-]
+const iconMap: Record<AcademicEvent["icon"], LucideIcon> = {
+    FileText,
+    GraduationCap,
+    Presentation,
+    Clock,
+}
 
-function getEventStatus(event: typeof academicEvents[0]) {
+function getEventStatus(event: AcademicEvent) {
     const now = new Date();
 
     if (isBefore(now, event.startDate)) {
@@ -114,8 +64,7 @@ export default async function CalendarPage() {
             <div className="grid gap-6 md:grid-cols-2">
                 {sortedEvents.map((event) => {
                     const eventStatus = getEventStatus(event);
-                    const Icon = event.icon;
-                    const isUrgent = eventStatus.status === "UPCOMING" && eventStatus.days <= 7;
+                    const Icon = iconMap[event.icon];
                     const isDone = eventStatus.status === "DONE";
 
                     return (

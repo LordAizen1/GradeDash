@@ -9,7 +9,6 @@ export default async function OnboardingPage() {
         redirect("/login")
     }
 
-    // @ts-ignore
     if (session.user?.batch) {
         redirect("/dashboard")
     }

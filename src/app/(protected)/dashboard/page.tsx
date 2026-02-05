@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { redirect } from "next/navigation"
+import { redirect, notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { calculateCGPA, calculateSGPA } from "@/lib/gpa-calculations"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,6 +9,9 @@ import { ExamCountdown } from "@/components/exam-countdown"
 import Link from "next/link"
 import { ArrowUpRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import type { Semester, Course } from "@prisma/client"
+
+type SemesterWithCourses = Semester & { courses: Course[] }
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +19,9 @@ export default async function DashboardPage() {
     const session = await auth()
 
     if (!session) redirect("/login")
-    // @ts-ignore
+
     const user = await prisma.user.findUnique({
-        where: { id: session?.user?.id! },
+        where: { id: session.user.id },
         include: {
             semesters: {
                 include: { courses: true },
@@ -27,7 +30,7 @@ export default async function DashboardPage() {
         }
     })
 
-    if (!user) return <div>User not found</div>
+    if (!user) notFound()
 
     // Check if user is onboarded using the fresh DB record, not the stale session
     if (!user.batch) redirect("/onboarding")
@@ -38,32 +41,30 @@ export default async function DashboardPage() {
 
     // Format data for charts
     // Format data for charts
-    const sgpaData = user.semesters.map((sem: any) => {
+    const semesters = user.semesters as SemesterWithCourses[]
+
+    const sgpaData = semesters.map((sem) => {
         let name = "";
         if (sem.type === "SUMMER") {
-            // Logic to determine Summer Term number 
-            // Reuse logic: (Regular sems before this) / 2
-            const regularSemsBefore = user.semesters.filter((s: any) => s.type === "REGULAR" && s.semesterNum < sem.semesterNum).length;
+            const regularSemsBefore = semesters.filter((s) => s.type === "REGULAR" && s.semesterNum < sem.semesterNum).length;
             const summerTermNum = Math.floor(regularSemsBefore / 2);
             name = `Summer ${summerTermNum || 1}`;
         } else {
-            // Logic for Regular Sem number
-            const regularSemNum = user.semesters.filter((s: any) => s.type === "REGULAR" && s.semesterNum <= sem.semesterNum).length;
+            const regularSemNum = semesters.filter((s) => s.type === "REGULAR" && s.semesterNum <= sem.semesterNum).length;
             name = `Sem ${regularSemNum}`;
         }
 
         // Calculate Running CGPA
-        const previousSemesters = user.semesters.filter((s: any) => s.semesterNum <= sem.semesterNum);
+        const previousSemesters = semesters.filter((s) => s.semesterNum <= sem.semesterNum);
         const { cgpa } = calculateCGPA(previousSemesters, previousSemesters.length);
 
         // Calculate Semester Credits (Completed)
-        const semCredits = sem.courses.reduce((sum: number, course: any) => {
-            // exclude failed/withdrawn courses
+        const semCredits = sem.courses.reduce((sum: number, course) => {
             return ["F", "W", "I", "X"].includes(course.grade) ? sum : sum + course.credits;
         }, 0);
 
         // Check if there are any attempted courses (to exclude semesters with only N/A or empty grades)
-        const hasAttemptedCredits = sem.courses.some((c: any) => {
+        const hasAttemptedCredits = sem.courses.some((c) => {
             const g = c.grade?.trim().toUpperCase() || '';
             const isExcluded = ["S", "X", "W", "I", "N/A", "WITHDRAWN", ""].includes(g) || g.includes("WITHDRAW");
             return !isExcluded;
@@ -78,9 +79,9 @@ export default async function DashboardPage() {
         }
     }).filter((s): s is { name: string; sgpa: number; cgpa: number; credits: number } => s !== null);
 
-    const isEmpty = user.semesters.length === 0
-    const regularSemCount = user.semesters.filter((s: any) => s.type === "REGULAR").length;
-    const summerSemCount = user.semesters.filter((s: any) => s.type === "SUMMER").length;
+    const isEmpty = semesters.length === 0
+    const regularSemCount = semesters.filter((s) => s.type === "REGULAR").length;
+    const summerSemCount = semesters.filter((s) => s.type === "SUMMER").length;
 
     return (
         <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto space-y-8 md:space-y-12">
