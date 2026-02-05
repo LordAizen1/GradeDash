@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { differenceInDays, isWithinInterval, isBefore } from "date-fns";
 import { CalendarDays } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
     Popover,
     PopoverContent,
@@ -17,40 +16,35 @@ type ExamStatus = {
     status: "UPCOMING" | "ONGOING" | "DONE";
 };
 
+function calculateExamTime(): ExamStatus {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+
+    const midsemStart = new Date(currentYear, 1, 21);
+    const midsemEnd = new Date(currentYear, 1, 28);
+    const endsemStart = new Date(currentYear, 3, 23);
+    const endsemEnd = new Date(currentYear, 4, 2);
+
+    if (isBefore(now, midsemStart)) {
+        return { type: "Midsem Exams", days: differenceInDays(midsemStart, now), status: "UPCOMING" };
+    } else if (isWithinInterval(now, { start: midsemStart, end: midsemEnd })) {
+        return { type: "Midsem Exams", days: 0, status: "ONGOING" };
+    }
+
+    if (isBefore(now, endsemStart)) {
+        return { type: "Endsem Exams", days: differenceInDays(endsemStart, now), status: "UPCOMING" };
+    } else if (isWithinInterval(now, { start: endsemStart, end: endsemEnd })) {
+        return { type: "Endsem Exams", days: 0, status: "ONGOING" };
+    }
+
+    return { type: "Summer Break", days: 0, status: "DONE" };
+}
+
 function useExamCountdown(): ExamStatus {
-    const [timeLeft, setTimeLeft] = useState<ExamStatus>({
-        type: "",
-        days: 0,
-        status: "DONE"
-    });
+    const [timeLeft, setTimeLeft] = useState<ExamStatus>(calculateExamTime);
 
     useEffect(() => {
-        const calculateTime = (): ExamStatus => {
-            const now = new Date();
-            const currentYear = now.getFullYear();
-
-            const midsemStart = new Date(currentYear, 1, 21);
-            const midsemEnd = new Date(currentYear, 1, 28);
-            const endsemStart = new Date(currentYear, 3, 23);
-            const endsemEnd = new Date(currentYear, 4, 2);
-
-            if (isBefore(now, midsemStart)) {
-                return { type: "Midsem Exams", days: differenceInDays(midsemStart, now), status: "UPCOMING" };
-            } else if (isWithinInterval(now, { start: midsemStart, end: midsemEnd })) {
-                return { type: "Midsem Exams", days: 0, status: "ONGOING" };
-            }
-
-            if (isBefore(now, endsemStart)) {
-                return { type: "Endsem Exams", days: differenceInDays(endsemStart, now), status: "UPCOMING" };
-            } else if (isWithinInterval(now, { start: endsemStart, end: endsemEnd })) {
-                return { type: "Endsem Exams", days: 0, status: "ONGOING" };
-            }
-
-            return { type: "Summer Break", days: 0, status: "DONE" };
-        };
-
-        setTimeLeft(calculateTime());
-        const interval = setInterval(() => setTimeLeft(calculateTime()), 60000);
+        const interval = setInterval(() => setTimeLeft(calculateExamTime()), 60000);
         return () => clearInterval(interval);
     }, []);
 
