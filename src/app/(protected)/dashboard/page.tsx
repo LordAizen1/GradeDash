@@ -7,7 +7,7 @@ import { DashboardCharts } from "@/components/dashboard-charts"
 import { AnimatedCounter } from "@/components/ui/animated-counter"
 import { ExamCountdown } from "@/components/exam-countdown"
 import Link from "next/link"
-import { ArrowUpRight, Plus } from "lucide-react"
+import { ArrowUpRight, Plus, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Semester, Course } from "@prisma/client"
 
@@ -20,15 +20,29 @@ export default async function DashboardPage() {
 
     if (!session) redirect("/login")
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-            semesters: {
-                include: { courses: true },
-                orderBy: { semesterNum: 'asc' }
+    let user
+    try {
+        user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            include: {
+                semesters: {
+                    include: { courses: true },
+                    orderBy: { semesterNum: 'asc' }
+                }
             }
-        }
-    })
+        })
+    } catch {
+        return (
+            <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto flex items-center justify-center">
+                <Card className="max-w-md w-full p-8 text-center space-y-4">
+                    <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto" />
+                    <h2 className="text-2xl font-bold">Database Unavailable</h2>
+                    <p className="text-muted-foreground">We couldn&apos;t connect to the database. Your data is safe — please try again later.</p>
+                    <Link href="/"><Button variant="outline">Go Home</Button></Link>
+                </Card>
+            </div>
+        )
+    }
 
     if (!user) notFound()
 

@@ -11,10 +11,16 @@ export default async function Home() {
   const session = await auth()
 
   if (session?.user?.id) {
-    const { prisma } = await import("@/lib/prisma")
-    const dbUser = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (dbUser) {
-      redirect("/dashboard")
+    try {
+      const { prisma } = await import("@/lib/prisma")
+      const dbUser = await prisma.user.findUnique({ where: { id: session.user.id } })
+      if (dbUser) {
+        redirect("/dashboard")
+      }
+    } catch (e: any) {
+      // If redirect() threw, re-throw it (Next.js uses thrown responses for redirects)
+      if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e
+      // DB is down — fall through to show the login page
     }
   }
 
