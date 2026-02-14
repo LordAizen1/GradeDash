@@ -15,6 +15,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: "Guest",
             credentials: {},
             async authorize(credentials) {
+                // Try DB first to get the real guest record
                 try {
                     const guestUser = await prisma.user.upsert({
                         where: { email: "guest@grade-dash.demo" },
@@ -30,8 +31,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     })
                     return guestUser
                 } catch {
-                    // DB is down — reject the login attempt gracefully
-                    return null
+                    // DB is down — return a hardcoded guest so JWT login still works
+                    return {
+                        id: "guest",
+                        email: "guest@grade-dash.demo",
+                        name: "Guest Student",
+                        image: "",
+                        batch: 2024,
+                        branch: "CSE",
+                        currentSem: 6,
+                    }
                 }
             }
         })
