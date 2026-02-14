@@ -5,28 +5,8 @@ import authConfig from "./auth.config"
 
 import Credentials from "next-auth/providers/credentials"
 
-// Wrap PrismaAdapter so auth doesn't crash when DB is down
-function resilientAdapter() {
-    const adapter = PrismaAdapter(prisma)
-    return new Proxy(adapter, {
-        get(target, prop, receiver) {
-            const original = Reflect.get(target, prop, receiver)
-            if (typeof original === "function") {
-                return async (...args: any[]) => {
-                    try {
-                        return await original(...args)
-                    } catch {
-                        return null
-                    }
-                }
-            }
-            return original
-        },
-    })
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    adapter: resilientAdapter(),
+    adapter: PrismaAdapter(prisma),
     session: { strategy: "jwt" },
     ...authConfig,
     providers: [

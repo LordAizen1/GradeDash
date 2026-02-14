@@ -11,6 +11,7 @@ export default {
     pages: {
         signIn: "/",
         newUser: "/onboarding",
+        error: "/",
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {

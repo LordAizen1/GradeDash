@@ -15,7 +15,12 @@ function AuthErrorToastContent() {
                 description: "Only @iiitd.ac.in emails are allowed.",
                 duration: 5000,
             })
-            // Clean up the URL
+            router.replace("/")
+        } else if (error === "AdapterError" || error === "CallbackRouteError" || error === "CredentialsSignin") {
+            toast.error("Service Unavailable", {
+                description: "Could not connect to the database. Please try again later.",
+                duration: 5000,
+            })
             router.replace("/")
         }
     }, [searchParams, router])
