@@ -5,8 +5,28 @@ import authConfig from "./auth.config"
 
 import Credentials from "next-auth/providers/credentials"
 
+// Wrap PrismaAdapter so auth doesn't crash when DB is down
+function resilientAdapter() {
+    const adapter = PrismaAdapter(prisma)
+    return new Proxy(adapter, {
+        get(target, prop, receiver) {
+            const original = Reflect.get(target, prop, receiver)
+            if (typeof original === "function") {
+                return async (...args: any[]) => {
+                    try {
+                        return await original(...args)
+                    } catch {
+                        return null
+                    }
+                }
+            }
+            return original
+        },
+    })
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    adapter: PrismaAdapter(prisma),
+    adapter: resilientAdapter(),
     session: { strategy: "jwt" },
     ...authConfig,
     providers: [
@@ -15,20 +35,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: "Guest",
             credentials: {},
             async authorize(credentials) {
-                // Upsert Guest User to ensure it exists
-                const guestUser = await prisma.user.upsert({
-                    where: { email: "guest@grade-dash.demo" },
-                    update: {}, // No updates needed, just ensure existence
-                    create: {
-                        email: "guest@grade-dash.demo",
-                        name: "Guest Student",
-                        image: "", // Optional: specific guest avatar
-                        batch: 2024,
-                        branch: "CSE", // Default branch
-                        currentSem: 6, // Default sem
-                    }
-                })
-                return guestUser
+                try {
+                    const guestUser = await prisma.user.upsert({
+                        where: { email: "guest@grade-dash.demo" },
+                        update: {},
+                        create: {
+                            email: "guest@grade-dash.demo",
+                            name: "Guest Student",
+                            image: "",
+                            batch: 2024,
+                            branch: "CSE",
+                            currentSem: 6,
+                        }
+                    })
+                    return guestUser
+                } catch {
+                    // DB is down — reject the login attempt gracefully
+                    return null
+                }
             }
         })
     ],
